@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../../design_system/design_tokens.dart';
 
 import '../../services/auth_service.dart';
+import '../../services/login_preferences_service.dart';
 import '../../core/router/app_router.dart';
 import '../../core/services/error_service.dart';
 
@@ -27,14 +28,24 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscurePassword = true;
   bool _rememberMe = false;
 
+  Future<void> _loadSavedCredentials() async {
+    final saved = await LoginPreferencesService.instance.load();
+    if (!mounted) return;
+
+    setState(() {
+      _rememberMe = saved.remember;
+      if (saved.remember && saved.email != null && saved.email!.isNotEmpty) {
+        _emailController.text = saved.email!;
+      } else if (_emailController.text.isEmpty && kDebugMode) {
+        _fillTestCredentials();
+      }
+    });
+  }
+
   @override
   void initState() {
     super.initState();
-
-    // Fill test credentials in debug mode
-    if (kDebugMode) {
-      _fillTestCredentials();
-    }
+    _loadSavedCredentials();
   }
 
   void _fillTestCredentials() {
@@ -68,6 +79,14 @@ class _LoginScreenState extends State<LoginScreen> {
       return 'Password must be at least 6 characters long';
     }
     return null;
+  }
+
+  Future<void> _persistCredentials(String email) async {
+    if (_rememberMe && email.isNotEmpty) {
+      await LoginPreferencesService.instance.save(remember: true, email: email);
+    } else {
+      await LoginPreferencesService.instance.clear();
+    }
   }
 
   // Login logic
@@ -112,17 +131,17 @@ class _LoginScreenState extends State<LoginScreen> {
       final result = await AuthService.instance.signInWithGoogle();
 
       if (result.success && mounted) {
-        // Check if this was a new user signup or existing user signin
         final isNewUser = result.user?.profile == null;
 
-        // Show appropriate welcome message
+        await _persistCredentials(result.user?.email ?? '');
+        if (!mounted) return;
+
         if (isNewUser) {
           ErrorService.showInfo('Hoşgeldin! Hesabın başarıyla oluşturuldu.');
         } else {
           ErrorService.showInfo('Tekrar hoşgeldin!');
         }
 
-        // Navigate to main app
         Navigator.pushReplacementNamed(context, AppRouter.otpVerification);
       } else {
         ErrorService.showError(
@@ -130,7 +149,6 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     } on PlatformException catch (e) {
-      // Handle Google Sign-In specific platform errors
       String errorMessage;
       if (e.code.contains('sign_in_failed')) {
         if (e.message?.contains('10') == true) {
@@ -144,7 +162,7 @@ class _LoginScreenState extends State<LoginScreen> {
         errorMessage = 'Google ile giriş iptal edildi.';
       } else {
         errorMessage =
-            'Google Sign-In hatası: ${e.message ?? "Bilinmeyen hata"}';
+            'Google Sign-In hatası: ${e.message ?? 'Bilinmeyen hata'}';
       }
       ErrorService.showError(errorMessage);
     } catch (e) {

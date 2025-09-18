@@ -14,6 +14,7 @@
 - Capsule gallery and action controls now mirror personalization: contrast-aware surfaces, reduced motion toggles, and disabled buttons mute feedback.
 - Onboarding and OTP flows now honour personalization defaults and ditch deprecated opacity helpers across the design system.
 - Analyzer pass now clean: deprecated opacity replaced project-wide, async context fixes applied, and smoke test updated.
+- Login remembers trusted emails when users opt-in, leveraging local prefs to streamline return visits.
 - Linked home quick actions to live capsule, personalization, and OTP flows.
 - Capsule gallery now honors personalization defaults and allows in-app activation with feedback.
 - OTP experience loads the preferred capsule and responds to reduced motion, high contrast, haptics, and sound toggles.
