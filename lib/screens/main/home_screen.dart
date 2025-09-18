@@ -41,9 +41,17 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
+    final highContrast = context.select<PersonalizationProvider, bool>(
+      (prefs) => prefs.highContrast,
+    );
+    final Color backgroundColor = highContrast
+        ? AppColors.neutralBlack
+        : AppColors.neutralWhite;
+
     return Scaffold(
+      backgroundColor: backgroundColor,
       body: Container(
-        color: AppColors.neutralWhite, // Minimalist background
+        color: backgroundColor, // Minimalist background
         child: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(DesignTokens.spaceL),
@@ -81,6 +89,22 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildHeader() {
+    final highContrast = context.select<PersonalizationProvider, bool>(
+      (prefs) => prefs.highContrast,
+    );
+    final Color titleColor = highContrast
+        ? AppColors.neutralWhite
+        : AppColors.neutral900;
+    final Color subtitleColor = highContrast
+        ? AppColors.neutral300
+        : AppColors.neutral600;
+    final Color avatarBackground = highContrast
+        ? Colors.white.withOpacity(0.12)
+        : AppColors.neutral200;
+    final Color iconColor = highContrast
+        ? AppColors.neutralWhite
+        : AppColors.neutral700;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -89,15 +113,11 @@ class _HomeScreenState extends State<HomeScreen>
           children: [
             Text(
               'FitCheck',
-              style: AppTextStyles.headlineLarge.copyWith(
-                color: AppColors.neutral900,
-              ),
+              style: AppTextStyles.headlineLarge.copyWith(color: titleColor),
             ),
             Text(
               'Virtual Try-On',
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.neutral600,
-              ),
+              style: AppTextStyles.bodyMedium.copyWith(color: subtitleColor),
             ),
           ],
         ),
@@ -105,34 +125,55 @@ class _HomeScreenState extends State<HomeScreen>
           width: 48,
           height: 48,
           decoration: BoxDecoration(
-            color: AppColors.neutral200,
+            color: avatarBackground,
             shape: BoxShape.circle,
           ),
-          child: Icon(Icons.person, color: AppColors.neutral700),
+          child: Icon(Icons.person, color: iconColor),
         ),
       ],
     );
   }
 
   Widget _buildWelcomeCard() {
+    final highContrast = context.select<PersonalizationProvider, bool>(
+      (prefs) => prefs.highContrast,
+    );
+    final Color cardColor = highContrast
+        ? AppColors.neutral900
+        : AppColors.neutral100;
+    final Color iconColor = highContrast
+        ? AppColors.neutralWhite
+        : AppColors.neutral700;
+    final Color titleColor = highContrast
+        ? AppColors.neutralWhite
+        : AppColors.neutral900;
+    final Color bodyColor = highContrast
+        ? AppColors.neutral300
+        : AppColors.neutral700;
+    final BoxBorder? border = highContrast
+        ? Border.all(color: Colors.white.withOpacity(0.08))
+        : null;
+    final List<BoxShadow> shadows = highContrast
+        ? const <BoxShadow>[]
+        : AppShadows.sm;
+
     return Container(
       padding: const EdgeInsets.all(DesignTokens.spaceXL),
       decoration: BoxDecoration(
-        color: AppColors.neutral100,
+        color: cardColor,
         borderRadius: BorderRadius.circular(DesignTokens.radiusL),
-        boxShadow: AppShadows.sm,
+        border: border,
+        boxShadow: shadows,
       ),
       child: Column(
         children: [
-          Icon(Icons.checkroom, size: 48, color: AppColors.neutral700),
+          Icon(Icons.checkroom, size: 48, color: iconColor),
 
           const SizedBox(height: DesignTokens.spaceL),
 
           Text(
             'Welcome to FitCheck!',
-            style: AppTextStyles.headlineMedium.copyWith(
-              color: AppColors.neutral900,
-            ),
+            style: AppTextStyles.headlineMedium.copyWith(color: titleColor),
             textAlign: TextAlign.center,
           ),
 
@@ -140,9 +181,7 @@ class _HomeScreenState extends State<HomeScreen>
 
           Text(
             'Virtual try-on technology. See how clothes look on you.',
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.neutral700,
-            ),
+            style: AppTextStyles.bodyMedium.copyWith(color: bodyColor),
             textAlign: TextAlign.center,
           ),
         ],
@@ -151,14 +190,19 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildQuickActions() {
+    final highContrast = context.select<PersonalizationProvider, bool>(
+      (prefs) => prefs.highContrast,
+    );
+    final Color titleColor = highContrast
+        ? AppColors.neutralWhite
+        : AppColors.neutral900;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Quick Actions',
-          style: AppTextStyles.headlineSmall.copyWith(
-            color: AppColors.neutral900,
-          ),
+          style: AppTextStyles.headlineSmall.copyWith(color: titleColor),
         ),
 
         const SizedBox(height: DesignTokens.spaceL),
@@ -226,31 +270,50 @@ class _HomeScreenState extends State<HomeScreen>
     required String subtitle,
     required VoidCallback onTap,
   }) {
+    final highContrast = context.select<PersonalizationProvider, bool>(
+      (prefs) => prefs.highContrast,
+    );
+    final Color cardColor = highContrast
+        ? AppColors.neutral800
+        : AppColors.neutralWhite;
+    final Color iconColor = highContrast
+        ? AppColors.neutralWhite
+        : AppColors.neutral700;
+    final Color titleColor = highContrast
+        ? AppColors.neutralWhite
+        : AppColors.neutral900;
+    final Color subtitleColor = highContrast
+        ? AppColors.neutral300
+        : AppColors.neutral600;
+    final BoxBorder? border = highContrast
+        ? Border.all(color: Colors.white.withOpacity(0.08))
+        : null;
+    final List<BoxShadow> shadows = highContrast
+        ? const <BoxShadow>[]
+        : AppShadows.sm;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(DesignTokens.spaceL),
         decoration: BoxDecoration(
-          color: AppColors.neutralWhite,
+          color: cardColor,
           borderRadius: BorderRadius.circular(DesignTokens.radiusM),
-          boxShadow: AppShadows.sm,
+          border: border,
+          boxShadow: shadows,
         ),
         child: Column(
           children: [
-            Icon(icon, size: 32, color: AppColors.neutral700),
+            Icon(icon, size: 32, color: iconColor),
             const SizedBox(height: DesignTokens.spaceS),
             Text(
               title,
-              style: AppTextStyles.titleSmall.copyWith(
-                color: AppColors.neutral900,
-              ),
+              style: AppTextStyles.titleSmall.copyWith(color: titleColor),
             ),
             const SizedBox(height: DesignTokens.spaceXS),
             Text(
               subtitle,
-              style: AppTextStyles.bodySmall.copyWith(
-                color: AppColors.neutral600,
-              ),
+              style: AppTextStyles.bodySmall.copyWith(color: subtitleColor),
               textAlign: TextAlign.center,
             ),
           ],
@@ -262,6 +325,28 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildCapsulePreview() {
     final personalization = context.watch<PersonalizationProvider>();
     final reducedMotion = personalization.reducedMotion;
+    final highContrast = personalization.highContrast;
+    final Color titleColor = highContrast
+        ? AppColors.neutralWhite
+        : AppColors.neutral900;
+    final Color bodyColor = highContrast
+        ? AppColors.neutral200
+        : AppColors.neutral700;
+    final Color chipBackground = highContrast
+        ? Colors.white.withOpacity(0.1)
+        : AppColors.neutral200;
+    final Color chipText = highContrast
+        ? AppColors.neutralWhite
+        : AppColors.neutral700;
+    final Color glassBorderColor = highContrast
+        ? Colors.white.withOpacity(0.16)
+        : Colors.white.withOpacity(0.18);
+    final List<Color>? glassGradient = highContrast
+        ? [
+            AppColors.neutral900.withOpacity(0.95),
+            AppColors.neutral800.withOpacity(0.9),
+          ]
+        : null;
 
     if (!personalization.hasLoaded) {
       return const Center(
@@ -277,9 +362,7 @@ class _HomeScreenState extends State<HomeScreen>
       children: [
         Text(
           "Today's Capsule",
-          style: AppTextStyles.headlineSmall.copyWith(
-            color: AppColors.neutral900,
-          ),
+          style: AppTextStyles.headlineSmall.copyWith(color: titleColor),
         ),
         const SizedBox(height: DesignTokens.spaceM),
         FutureBuilder<CapsuleModel?>(
@@ -291,6 +374,8 @@ class _HomeScreenState extends State<HomeScreen>
               return GlassContainer(
                 padding: const EdgeInsets.all(DesignTokens.spaceXL),
                 borderRadius: BorderRadius.circular(DesignTokens.radiusL),
+                gradientColors: glassGradient,
+                borderColor: glassBorderColor,
                 child: const SizedBox(
                   height: 180,
                   child: Center(child: CircularProgressIndicator()),
@@ -302,6 +387,8 @@ class _HomeScreenState extends State<HomeScreen>
               return GlassContainer(
                 padding: const EdgeInsets.all(DesignTokens.spaceXL),
                 borderRadius: BorderRadius.circular(DesignTokens.radiusL),
+                gradientColors: glassGradient,
+                borderColor: glassBorderColor,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -309,7 +396,7 @@ class _HomeScreenState extends State<HomeScreen>
                     Text(
                       'Capsule not found',
                       style: AppTextStyles.titleMedium.copyWith(
-                        color: AppColors.neutral900,
+                        color: titleColor,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -317,7 +404,7 @@ class _HomeScreenState extends State<HomeScreen>
                     Text(
                       "Let's explore the capsule gallery to refresh your ritual.",
                       style: AppTextStyles.bodyMedium.copyWith(
-                        color: AppColors.neutral600,
+                        color: bodyColor,
                       ),
                     ),
                     const SizedBox(height: DesignTokens.spaceL),
@@ -336,6 +423,8 @@ class _HomeScreenState extends State<HomeScreen>
             Widget card = GlassContainer(
               padding: const EdgeInsets.all(DesignTokens.spaceL),
               borderRadius: BorderRadius.circular(DesignTokens.radiusL),
+              gradientColors: glassGradient,
+              borderColor: glassBorderColor,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -393,7 +482,7 @@ class _HomeScreenState extends State<HomeScreen>
                   Text(
                     capsule.description,
                     style: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColors.neutral700,
+                      color: bodyColor,
                       height: 1.4,
                     ),
                   ),
@@ -405,9 +494,9 @@ class _HomeScreenState extends State<HomeScreen>
                         .map(
                           (tag) => Chip(
                             label: Text(tag),
-                            backgroundColor: AppColors.neutral200,
+                            backgroundColor: chipBackground,
                             labelStyle: AppTextStyles.labelMedium.copyWith(
-                              color: AppColors.neutral700,
+                              color: chipText,
                             ),
                           ),
                         )
@@ -443,14 +532,28 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildFeaturesPreview() {
+    final highContrast = context.select<PersonalizationProvider, bool>(
+      (prefs) => prefs.highContrast,
+    );
+    final Color titleColor = highContrast
+        ? AppColors.neutralWhite
+        : AppColors.neutral900;
+    final Color cardColor = highContrast
+        ? AppColors.neutral900
+        : AppColors.neutralWhite;
+    final BoxBorder? border = highContrast
+        ? Border.all(color: Colors.white.withOpacity(0.08))
+        : null;
+    final List<BoxShadow> shadows = highContrast
+        ? const <BoxShadow>[]
+        : AppShadows.sm;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Coming Soon',
-          style: AppTextStyles.headlineSmall.copyWith(
-            color: AppColors.neutral900,
-          ),
+          style: AppTextStyles.headlineSmall.copyWith(color: titleColor),
         ),
 
         const SizedBox(height: DesignTokens.spaceL),
@@ -458,9 +561,10 @@ class _HomeScreenState extends State<HomeScreen>
         Container(
           padding: const EdgeInsets.all(DesignTokens.spaceL),
           decoration: BoxDecoration(
-            color: AppColors.neutralWhite,
+            color: cardColor,
             borderRadius: BorderRadius.circular(DesignTokens.radiusL),
-            boxShadow: AppShadows.sm,
+            border: border,
+            boxShadow: shadows,
           ),
           child: Column(
             children: [
@@ -493,16 +597,32 @@ class _HomeScreenState extends State<HomeScreen>
     required String title,
     required String subtitle,
   }) {
+    final highContrast = context.select<PersonalizationProvider, bool>(
+      (prefs) => prefs.highContrast,
+    );
+    final Color tileColor = highContrast
+        ? Colors.white.withOpacity(0.1)
+        : AppColors.neutral200;
+    final Color iconColor = highContrast
+        ? AppColors.neutralWhite
+        : AppColors.neutral700;
+    final Color titleColor = highContrast
+        ? AppColors.neutralWhite
+        : AppColors.neutral900;
+    final Color subtitleColor = highContrast
+        ? AppColors.neutral300
+        : AppColors.neutral600;
+
     return Row(
       children: [
         Container(
           width: 48,
           height: 48,
           decoration: BoxDecoration(
-            color: AppColors.neutral200,
+            color: tileColor,
             borderRadius: BorderRadius.circular(DesignTokens.radiusM),
           ),
-          child: Icon(icon, color: AppColors.neutral700, size: 24),
+          child: Icon(icon, color: iconColor, size: 24),
         ),
         const SizedBox(width: DesignTokens.spaceM),
         Expanded(
@@ -511,16 +631,12 @@ class _HomeScreenState extends State<HomeScreen>
             children: [
               Text(
                 title,
-                style: AppTextStyles.titleSmall.copyWith(
-                  color: AppColors.neutral900,
-                ),
+                style: AppTextStyles.titleSmall.copyWith(color: titleColor),
               ),
               const SizedBox(height: DesignTokens.spaceXS),
               Text(
                 subtitle,
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.neutral600,
-                ),
+                style: AppTextStyles.bodySmall.copyWith(color: subtitleColor),
               ),
             ],
           ),

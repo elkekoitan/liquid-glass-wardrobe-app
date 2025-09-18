@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../providers/fit_check_provider.dart';
 import '../screens/start_screen.dart';
 import '../screens/canvas_screen.dart';
@@ -12,9 +13,7 @@ import '../core/theme/app_spacing.dart';
 
 /// Main App Screen - Orchestrates the entire fit-check experience
 class MainAppScreen extends StatefulWidget {
-  final String geminiApiKey;
-
-  const MainAppScreen({super.key, required this.geminiApiKey});
+  const MainAppScreen({super.key});
 
   @override
   State<MainAppScreen> createState() => _MainAppScreenState();
@@ -26,11 +25,17 @@ class _MainAppScreenState extends State<MainAppScreen> {
   @override
   void initState() {
     super.initState();
-    // Initialize Gemini service with API key
+    // Initialize Gemini service with API key from environment
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<FitCheckProvider>().initializeGeminiService(
-        widget.geminiApiKey,
-      );
+      final geminiApiKey = dotenv.env['GEMINI_API_KEY'];
+      if (geminiApiKey != null && geminiApiKey.isNotEmpty) {
+        context.read<FitCheckProvider>().initializeGeminiService(
+          geminiApiKey,
+        );
+      } else {
+        // Handle missing API key
+        print('Warning: GEMINI_API_KEY not found in environment variables');
+      }
     });
   }
 

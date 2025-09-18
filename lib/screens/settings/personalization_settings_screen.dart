@@ -11,10 +11,7 @@ class PersonalizationSettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => PersonalizationProvider()..load(),
-      child: const _PersonalizationSettingsView(),
-    );
+    return const _PersonalizationSettingsView();
   }
 }
 

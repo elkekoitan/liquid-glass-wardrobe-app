@@ -10,6 +10,7 @@
 ---
 
 ## 🔄 Latest Progress (2025-09-18)
+- Home surfaces adapt to personalization: high contrast palette, reduced-motion falls back, and glass buttons gate haptics/sound settings.
 - Linked home quick actions to live capsule, personalization, and OTP flows.
 - Capsule gallery now honors personalization defaults and allows in-app activation with feedback.
 - OTP experience loads the preferred capsule and responds to reduced motion, high contrast, haptics, and sound toggles.

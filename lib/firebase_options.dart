@@ -3,6 +3,7 @@
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// Default [FirebaseOptions] for use with your Firebase apps.
 ///
@@ -40,51 +41,51 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyDd8vcGJjBlQ1IMt0E7sHZBwzDKct_7hMU',
-    appId: '1:1023772723142:web:6e6bab3a3aebadced254c7',
-    messagingSenderId: '1023772723142',
-    projectId: 'forexsignalpro-829b8',
-    authDomain: 'forexsignalpro-829b8.firebaseapp.com',
-    storageBucket: 'forexsignalpro-829b8.firebasestorage.app',
-    measurementId: 'G-GYQK0BJWLR',
+  static FirebaseOptions get web => FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_WEB_API_KEY'] ?? '',
+    appId: dotenv.env['FIREBASE_WEB_APP_ID'] ?? '',
+    messagingSenderId: dotenv.env['FIREBASE_MESSAGING_SENDER_ID'] ?? '',
+    projectId: dotenv.env['FIREBASE_PROJECT_ID'] ?? '',
+    authDomain: dotenv.env['FIREBASE_AUTH_DOMAIN'] ?? '',
+    storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET'] ?? '',
+    measurementId: dotenv.env['FIREBASE_WEB_MEASUREMENT_ID'] ?? '',
   );
 
-  static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyAGY5YOjiVn44_irAaFfUcaHZ2yVsQzvws',
-    appId: '1:1023772723142:android:7d3267011e837cadd254c7',
-    messagingSenderId: '1023772723142',
-    projectId: 'forexsignalpro-829b8',
-    storageBucket: 'forexsignalpro-829b8.firebasestorage.app',
+  static FirebaseOptions get android => FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_ANDROID_API_KEY'] ?? '',
+    appId: dotenv.env['FIREBASE_ANDROID_APP_ID'] ?? '',
+    messagingSenderId: dotenv.env['FIREBASE_MESSAGING_SENDER_ID'] ?? '',
+    projectId: dotenv.env['FIREBASE_PROJECT_ID'] ?? '',
+    storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET'] ?? '',
   );
 
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyAcbR1mz6eP6L-khphynSJjqqAlU35xi5E',
-    appId: '1:1023772723142:ios:da3987dce03871dcd254c7',
-    messagingSenderId: '1023772723142',
-    projectId: 'forexsignalpro-829b8',
-    storageBucket: 'forexsignalpro-829b8.firebasestorage.app',
-    iosClientId: '1023772723142-q54d0le316pr8goe12rto8l9ee6vt775.apps.googleusercontent.com',
-    iosBundleId: 'com.liquidglass.app.liquidGlassOtpApp',
+  static FirebaseOptions get ios => FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_IOS_API_KEY'] ?? '',
+    appId: dotenv.env['FIREBASE_IOS_APP_ID'] ?? '',
+    messagingSenderId: dotenv.env['FIREBASE_MESSAGING_SENDER_ID'] ?? '',
+    projectId: dotenv.env['FIREBASE_PROJECT_ID'] ?? '',
+    storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET'] ?? '',
+    iosClientId: dotenv.env['FIREBASE_IOS_CLIENT_ID'] ?? '',
+    iosBundleId: dotenv.env['FIREBASE_IOS_BUNDLE_ID'] ?? '',
   );
 
-  static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyAcbR1mz6eP6L-khphynSJjqqAlU35xi5E',
-    appId: '1:1023772723142:ios:da3987dce03871dcd254c7',
-    messagingSenderId: '1023772723142',
-    projectId: 'forexsignalpro-829b8',
-    storageBucket: 'forexsignalpro-829b8.firebasestorage.app',
-    iosClientId: '1023772723142-q54d0le316pr8goe12rto8l9ee6vt775.apps.googleusercontent.com',
-    iosBundleId: 'com.liquidglass.app.liquidGlassOtpApp',
+  static FirebaseOptions get macos => FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_IOS_API_KEY'] ?? '',
+    appId: dotenv.env['FIREBASE_IOS_APP_ID'] ?? '',
+    messagingSenderId: dotenv.env['FIREBASE_MESSAGING_SENDER_ID'] ?? '',
+    projectId: dotenv.env['FIREBASE_PROJECT_ID'] ?? '',
+    storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET'] ?? '',
+    iosClientId: dotenv.env['FIREBASE_IOS_CLIENT_ID'] ?? '',
+    iosBundleId: dotenv.env['FIREBASE_IOS_BUNDLE_ID'] ?? '',
   );
 
-  static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyDd8vcGJjBlQ1IMt0E7sHZBwzDKct_7hMU',
-    appId: '1:1023772723142:web:3b956e610f7c1a0ed254c7',
-    messagingSenderId: '1023772723142',
-    projectId: 'forexsignalpro-829b8',
-    authDomain: 'forexsignalpro-829b8.firebaseapp.com',
-    storageBucket: 'forexsignalpro-829b8.firebasestorage.app',
-    measurementId: 'G-WBS2S2SRC8',
+  static FirebaseOptions get windows => FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_WEB_API_KEY'] ?? '',
+    appId: dotenv.env['FIREBASE_WINDOWS_APP_ID'] ?? '',
+    messagingSenderId: dotenv.env['FIREBASE_MESSAGING_SENDER_ID'] ?? '',
+    projectId: dotenv.env['FIREBASE_PROJECT_ID'] ?? '',
+    authDomain: dotenv.env['FIREBASE_AUTH_DOMAIN'] ?? '',
+    storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET'] ?? '',
+    measurementId: dotenv.env['FIREBASE_WINDOWS_MEASUREMENT_ID'] ?? '',
   );
 }

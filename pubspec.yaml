@@ -1,4 +1,4 @@
-﻿name: fit_check_app
+name: fit_check_app
 description: "AI-powered virtual try-on mobile app with liquid glass UI"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -58,6 +58,7 @@ dependencies:
   intl: ^0.19.0
   shared_preferences: ^2.3.2
   connectivity_plus: ^6.1.0
+  flutter_dotenv: ^5.1.0
   
   # AI and Image Processing packages
   google_generative_ai: ^0.4.6
@@ -96,6 +97,7 @@ flutter:
 
   # Professional fashion assets
   assets:
+    - .env
     - assets/data/capsules.json
     - assets/images/
     - assets/images/fashion/
