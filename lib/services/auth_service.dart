@@ -389,6 +389,44 @@ class AuthService {
     }
   }
 
+  /// Sign in with Apple (Mock)
+  Future<AuthResult> signInWithApple() async {
+    try {
+      // Simulate Apple sign in
+      await Future.delayed(const Duration(seconds: 1));
+
+      // Create mock Apple user
+      final userModel = UserModel(
+        uid: 'apple_mock_user_${DateTime.now().millisecondsSinceEpoch}',
+        email: 'user@privaterelay.appleid.com',
+        displayName: 'Apple User',
+        photoURL: null, // Apple typically doesn't provide profile photos
+        phoneNumber: null,
+        createdAt: DateTime.now(),
+        lastSignIn: DateTime.now(),
+        isEmailVerified: true,
+        profile: UserProfile(firstName: 'Apple', lastName: 'User'),
+        preferences: const UserPreferences(),
+        socialData: const UserSocialData(),
+        subscription: null,
+      );
+
+      // Save user session
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('userData', json.encode(userModel.toMap()));
+      await prefs.setBool('isLoggedIn', true);
+
+      _currentUser = userModel;
+      _userController.add(_currentUser);
+
+      return AuthResult.success(userModel);
+    } catch (e) {
+      return AuthResult.failure(
+        'Failed to sign in with Apple: ${e.toString()}',
+      );
+    }
+  }
+
   /// Dispose of resources
   void dispose() {
     _userController.close();

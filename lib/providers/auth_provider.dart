@@ -174,6 +174,63 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  /// Sign in with Apple and optionally remember credentials
+  Future<bool> signInWithApple({bool rememberMe = true}) async {
+    try {
+      _setLoading(true);
+      _setError(null);
+
+      final result = await AuthService.instance.signInWithApple();
+
+      if (result.success) {
+        _user = result.user;
+
+        final email = result.user?.email?.trim();
+        if (email != null && email.isNotEmpty) {
+          final service = LoginPreferencesService.instance;
+          if (rememberMe) {
+            await service.save(
+              remember: true,
+              email: email,
+              context: LoginContext.login,
+            );
+          } else {
+            await service.clear(context: LoginContext.login);
+          }
+        }
+
+        debugPrint('AuthProvider: Apple sign in successful');
+        return true;
+      } else {
+        _setError(result.error);
+        debugPrint('AuthProvider: Apple sign in failed - ${result.error}');
+        return false;
+      }
+    } on PlatformException catch (e) {
+      final code = e.code;
+      String message;
+      if (code.contains('sign_in_failed')) {
+        message =
+            'Apple Sign-In yapılandırması eksik. Lütfen daha sonra tekrar deneyin.';
+      } else if (code.contains('sign_in_canceled')) {
+        message = 'Apple ile giriş iptal edildi.';
+      } else {
+        message = 'Apple Sign-In hatası: ${e.message ?? 'Bilinmeyen hata'}';
+      }
+      _setError(message);
+      debugPrint(
+        'AuthProvider: Apple sign in platform exception - ${e.toString()}',
+      );
+      return false;
+    } catch (e) {
+      _setError('Apple sign in failed: ${e.toString()}');
+      debugPrint('AuthProvider: Apple sign in exception - ${e.toString()}');
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   /// Register new user with email and password
   Future<bool> registerWithEmailAndPassword({
     required String email,

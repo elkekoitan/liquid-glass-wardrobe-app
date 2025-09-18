@@ -156,8 +156,43 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleAppleLogin() async {
-    // TODO: Implement Apple Sign-In
-    ErrorService.showInfo('Apple Sign-In coming soon!');
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final authProvider = context.read<AuthProvider>();
+      final success = await authProvider.signInWithApple(
+        rememberMe: _rememberMe,
+      );
+
+      if (success && mounted) {
+        final isNewUser = authProvider.user?.profile == null;
+
+        if (isNewUser) {
+          ErrorService.showInfo('Hoşgeldin! Hesabın başarıyla oluşturuldu.');
+        } else {
+          ErrorService.showInfo('Tekrar hoşgeldin!');
+        }
+
+        Navigator.pushReplacementNamed(context, AppRouter.otpVerification);
+      } else if (mounted) {
+        final message =
+            authProvider.errorMessage ?? 'Apple ile giriş başarısız oldu';
+        ErrorService.showError(message);
+      }
+    } catch (e) {
+      debugPrint('Apple Sign-In unexpected error: $e');
+      ErrorService.showError(
+        'Beklenmeyen bir hata oluştu. Lütfen tekrar deneyin.',
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   // Navigation helpers

@@ -107,4 +107,38 @@ void main() {
       expect(stored.email, isNull);
     },
   );
+
+  test('signInWithApple persists email when rememberMe is true', () async {
+    final provider = AuthProvider();
+
+    final success = await provider.signInWithApple();
+
+    expect(success, isTrue);
+
+    final stored = await LoginPreferencesService.instance.load();
+    expect(stored.remember, isTrue);
+    expect(stored.email, 'user@privaterelay.appleid.com');
+  });
+
+  test(
+    'signInWithApple clears stored email when rememberMe is false',
+    () async {
+      final service = LoginPreferencesService.instance;
+      await service.save(
+        remember: true,
+        email: 'keep@old.com',
+        context: LoginContext.login,
+      );
+
+      final provider = AuthProvider();
+
+      final success = await provider.signInWithApple(rememberMe: false);
+
+      expect(success, isTrue);
+
+      final stored = await service.load();
+      expect(stored.remember, isFalse);
+      expect(stored.email, isNull);
+    },
+  );
 }
