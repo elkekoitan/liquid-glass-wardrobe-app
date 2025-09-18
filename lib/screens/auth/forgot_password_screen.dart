@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/validators.dart';
 import '../../design_system/design_tokens.dart';
+import '../../services/login_preferences_service.dart';
 import 'login_screen.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
@@ -22,12 +23,29 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   @override
   void initState() {
     super.initState();
+    Future.microtask(_prefillSavedEmail);
   }
 
   @override
   void dispose() {
     _emailController.dispose();
     super.dispose();
+  }
+
+  Future<void> _prefillSavedEmail() async {
+    final service = LoginPreferencesService.instance;
+    final loginCredentials = await service.load();
+    if (loginCredentials.email?.isNotEmpty == true) {
+      _emailController.text = loginCredentials.email!.trim();
+      return;
+    }
+
+    final registerCredentials = await service.load(
+      context: LoginContext.register,
+    );
+    if (registerCredentials.email?.isNotEmpty == true) {
+      _emailController.text = registerCredentials.email!.trim();
+    }
   }
 
   Future<void> _handleResetPassword() async {

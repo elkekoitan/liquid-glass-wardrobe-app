@@ -1,7 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'dart:async';
+import 'package:flutter/services.dart';
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
+import '../services/login_preferences_service.dart';
 
 /// Authentication Provider for managing user authentication state
 /// Provides reactive authentication state management across the app
@@ -83,9 +85,15 @@ class AuthProvider extends ChangeNotifier {
       if (result.success) {
         _user = result.user;
 
-        // TODO: Handle remember me functionality
+        final service = LoginPreferencesService.instance;
         if (rememberMe) {
-          // Save login preference
+          await service.save(
+            remember: true,
+            email: email.trim(),
+            context: LoginContext.login,
+          );
+        } else {
+          await service.clear(context: LoginContext.login);
         }
 
         debugPrint('AuthProvider: Sign in successful for $email');
@@ -98,6 +106,68 @@ class AuthProvider extends ChangeNotifier {
     } catch (e) {
       _setError('Sign in failed: ${e.toString()}');
       debugPrint('AuthProvider: Sign in exception - $e');
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  /// Sign in with Google and optionally remember credentials
+  Future<bool> signInWithGoogle({bool rememberMe = true}) async {
+    try {
+      _setLoading(true);
+      _setError(null);
+
+      final result = await AuthService.instance.signInWithGoogle();
+
+      if (result.success) {
+        _user = result.user;
+
+        final email = result.user?.email?.trim();
+        if (email != null && email.isNotEmpty) {
+          final service = LoginPreferencesService.instance;
+          if (rememberMe) {
+            await service.save(
+              remember: true,
+              email: email,
+              context: LoginContext.login,
+            );
+          } else {
+            await service.clear(context: LoginContext.login);
+          }
+        }
+
+        debugPrint('AuthProvider: Google sign in successful');
+        return true;
+      } else {
+        _setError(result.error);
+        debugPrint('AuthProvider: Google sign in failed - ${result.error}');
+        return false;
+      }
+    } on PlatformException catch (e) {
+      final code = e.code;
+      String message;
+      if (code.contains('sign_in_failed')) {
+        if (e.message?.contains('10') == true) {
+          message =
+              'Google Sign-In yapılandırması eksik. Lütfen daha sonra tekrar deneyin.';
+        } else {
+          message =
+              'Google ile giriş başarısız. İnternet bağlantınızı kontrol edin.';
+        }
+      } else if (code.contains('sign_in_canceled')) {
+        message = 'Google ile giriş iptal edildi.';
+      } else {
+        message = 'Google Sign-In hatası: ${e.message ?? 'Bilinmeyen hata'}';
+      }
+      _setError(message);
+      debugPrint(
+        'AuthProvider: Google sign in platform exception - ${e.toString()}',
+      );
+      return false;
+    } catch (e) {
+      _setError('Google sign in failed: ${e.toString()}');
+      debugPrint('AuthProvider: Google sign in exception - ${e.toString()}');
       return false;
     } finally {
       _setLoading(false);

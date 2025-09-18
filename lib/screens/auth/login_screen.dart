@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 
 import '../../design_system/design_tokens.dart';
 
-import '../../services/auth_service.dart';
 import '../../services/login_preferences_service.dart';
+import '../../providers/auth_provider.dart';
 import '../../core/router/app_router.dart';
 import '../../core/services/error_service.dart';
 
@@ -81,14 +81,6 @@ class _LoginScreenState extends State<LoginScreen> {
     return null;
   }
 
-  Future<void> _persistCredentials(String email) async {
-    if (_rememberMe && email.isNotEmpty) {
-      await LoginPreferencesService.instance.save(remember: true, email: email);
-    } else {
-      await LoginPreferencesService.instance.clear();
-    }
-  }
-
   // Login logic
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
@@ -98,17 +90,18 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      final result = await AuthService.instance.signInWithEmailAndPassword(
+      final authProvider = context.read<AuthProvider>();
+      final success = await authProvider.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text,
+        rememberMe: _rememberMe,
       );
 
-      if (result.success && mounted) {
-        // Navigate to main app
+      if (success && mounted) {
         Navigator.pushReplacementNamed(context, AppRouter.otpVerification);
       } else {
-        // Show error
-        ErrorService.showError(result.error ?? 'Login failed');
+        final message = authProvider.errorMessage ?? 'Login failed';
+        ErrorService.showError(message);
       }
     } catch (e) {
       ErrorService.showError('An unexpected error occurred');
@@ -128,13 +121,13 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      final result = await AuthService.instance.signInWithGoogle();
+      final authProvider = context.read<AuthProvider>();
+      final success = await authProvider.signInWithGoogle(
+        rememberMe: _rememberMe,
+      );
 
-      if (result.success && mounted) {
-        final isNewUser = result.user?.profile == null;
-
-        await _persistCredentials(result.user?.email ?? '');
-        if (!mounted) return;
+      if (success && mounted) {
+        final isNewUser = authProvider.user?.profile == null;
 
         if (isNewUser) {
           ErrorService.showInfo('Hoşgeldin! Hesabın başarıyla oluşturuldu.');
@@ -143,28 +136,11 @@ class _LoginScreenState extends State<LoginScreen> {
         }
 
         Navigator.pushReplacementNamed(context, AppRouter.otpVerification);
-      } else {
-        ErrorService.showError(
-          result.error ?? 'Google ile giriş başarısız oldu',
-        );
+      } else if (mounted) {
+        final message =
+            authProvider.errorMessage ?? 'Google ile giriş başarısız oldu';
+        ErrorService.showError(message);
       }
-    } on PlatformException catch (e) {
-      String errorMessage;
-      if (e.code.contains('sign_in_failed')) {
-        if (e.message?.contains('10') == true) {
-          errorMessage =
-              'Google Sign-In yapılandırması eksik. Lütfen daha sonra tekrar deneyin.';
-        } else {
-          errorMessage =
-              'Google ile giriş başarısız. İnternet bağlantınızı kontrol edin.';
-        }
-      } else if (e.code.contains('sign_in_canceled')) {
-        errorMessage = 'Google ile giriş iptal edildi.';
-      } else {
-        errorMessage =
-            'Google Sign-In hatası: ${e.message ?? 'Bilinmeyen hata'}';
-      }
-      ErrorService.showError(errorMessage);
     } catch (e) {
       debugPrint('Google Sign-In unexpected error: $e');
       ErrorService.showError(

@@ -10,6 +10,8 @@
 ---
 
 ## 🔄 Latest Progress (2025-09-18)
+- Google sign-in flows now route through AuthProvider, honoring remember-me settings and unified error messaging.
+- AuthProvider now persists remember-me selections; login + forgot password flows auto-fill saved emails and new tests cover the path.
 - Home surfaces adapt to personalization: high contrast palette, reduced-motion falls back, and glass buttons gate haptics/sound settings.
 - Capsule gallery and action controls now mirror personalization: contrast-aware surfaces, reduced motion toggles, and disabled buttons mute feedback.
 - Onboarding and OTP flows now honour personalization defaults and ditch deprecated opacity helpers across the design system.
@@ -65,14 +67,14 @@
 ## PHASE 2: CORE APPLICATION FEATURES
 
 ### 2.1 USER AUTHENTICATION SCREENS
-**Priority**: HIGH | **Estimated Time**: 4-6 hours | **Status**: PENDING
+**Priority**: HIGH | **Estimated Time**: 4-6 hours | **Status**: IN PROGRESS
 
 #### Subtasks:
 - [ ] **2.1.1** Login Screen with Glass UI
-  - [ ] Email/password input fields with validation
-  - [ ] Liquid glass form container
-  - [ ] Social login buttons (Google, Apple)
-  - [ ] Forgot password link
+  - [x] Email/password input fields with validation
+  - [x] Liquid glass form container
+  - [x] Social login buttons (Google, Apple)
+  - [x] Forgot password link
   - [ ] Smooth animations and transitions
   
 - [ ] **2.1.2** Registration Screen
@@ -82,11 +84,11 @@
   - [ ] Terms & conditions acceptance
   - [ ] Welcome animation sequence
   
-- [ ] **2.1.3** Forgot Password Screen
-  - [ ] Email input with validation
-  - [ ] Reset email sending
-  - [ ] Success/error state handling
-  - [ ] Back to login navigation
+- [x] **2.1.3** Forgot Password Screen
+  - [x] Email input with validation
+  - [x] Reset email sending
+  - [x] Success/error state handling
+  - [x] Back to login navigation
   
 - [ ] **2.1.4** Profile Setup Wizard
   - [ ] Personal information collection
@@ -606,7 +608,8 @@
 
 ---
 
-**Last Updated**: 2025-09-16T21:45:00Z  
+**Last Updated**: 2025-09-18T16:59:00Z  
 **Current Phase**: Phase 2 - Core Application Features  
 **Completed**: ✅ Authentication Screens (Login Screen + AuthProvider + Navigation)  
 **Next Milestone**: Enhanced Navigation System + Firebase Configuration
+

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../services/login_preferences_service.dart';
 import '../../utils/validators.dart';
 import '../../design_system/design_tokens.dart';
 
@@ -23,10 +24,40 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _obscureConfirmPassword = true;
   bool _acceptTerms = false;
   bool _isLoading = false;
+  bool _rememberMe = false;
+
+  Future<void> _loadSavedEmail() async {
+    final saved = await LoginPreferencesService.instance.load(
+      context: LoginContext.register,
+    );
+    if (!mounted) return;
+
+    setState(() {
+      _rememberMe = saved.remember;
+      if (saved.remember && saved.email != null && saved.email!.isNotEmpty) {
+        _emailController.text = saved.email!;
+      }
+    });
+  }
+
+  Future<void> _persistEmail(String email) async {
+    if (_rememberMe && email.isNotEmpty) {
+      await LoginPreferencesService.instance.save(
+        remember: true,
+        email: email,
+        context: LoginContext.register,
+      );
+    } else {
+      await LoginPreferencesService.instance.clear(
+        context: LoginContext.register,
+      );
+    }
+  }
 
   @override
   void initState() {
     super.initState();
+    _loadSavedEmail();
   }
 
   @override
@@ -49,16 +80,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _isLoading = true);
 
     try {
+      final email = _emailController.text.trim();
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
       final success = await authProvider.register(
-        email: _emailController.text.trim(),
+        email: email,
         password: _passwordController.text,
         firstName: _firstNameController.text.trim(),
         lastName: _lastNameController.text.trim(),
       );
 
       if (success && mounted) {
+        await _persistEmail(email);
+        if (!mounted) return;
+
         _showSnackBar(
           'Account created successfully! Please check your email for verification.',
         );
@@ -306,6 +341,39 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                           ),
                         ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: DesignTokens.spaceS),
+            Row(
+              children: [
+                Checkbox(
+                  value: _rememberMe,
+                  onChanged: (value) =>
+                      setState(() => _rememberMe = value ?? false),
+                  fillColor: WidgetStateProperty.resolveWith((states) {
+                    if (states.contains(WidgetState.selected)) {
+                      return AppColors.neutral900;
+                    }
+                    return Colors.transparent;
+                  }),
+                  checkColor: AppColors.neutralWhite,
+                  side: const BorderSide(
+                    color: AppColors.neutral400,
+                    width: 1.5,
+                  ),
+                ),
+                const SizedBox(width: DesignTokens.spaceS),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => setState(() => _rememberMe = !_rememberMe),
+                    child: Text(
+                      'Remember my email for next time',
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: AppColors.neutral700,
                       ),
                     ),
                   ),
