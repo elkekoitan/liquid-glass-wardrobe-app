@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1023772723142",
+    "project_id": "forexsignalpro-829b8",
+    "storage_bucket": "forexsignalpro-829b8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1023772723142:android:7d3267011e837cadd254c7",
+        "android_client_info": {
+          "package_name": "com.liquidglass.app.liquid_glass_otp_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1023772723142-q3k3t73bvbk2ompbodf0avs9ca387n5g.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAGY5YOjiVn44_irAaFfUcaHZ2yVsQzvws"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1023772723142-q3k3t73bvbk2ompbodf0avs9ca387n5g.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

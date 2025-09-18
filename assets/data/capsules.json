@@ -1,0 +1,78 @@
+﻿[
+  {
+    "id": "wk-monday-reset",
+    "name": "Monday Reset",
+    "mood": "Clarity",
+    "type": "weekly",
+    "startDate": "2025-09-22",
+    "endDate": "2025-09-22",
+    "description": "Dew-lit overlays and calm motion sequence to ease into the week.",
+    "colorway": ["#E8EEF2", "#00E0D2", "#C69EFF"],
+    "signatureDetail": "breath-ripple",
+    "heroImage": "assets/images/fashion/model_0.jpg",
+    "accessibilityVariant": "high-contrast",
+    "tags": ["clarity", "breath", "calm"],
+    "microcopy": {
+      "prompt": "Monday Reset breathes clarity into your ritual.",
+      "success": "Verified. Let the week unfold.",
+      "error": "Digits didn’t align. Try again, gently."
+    }
+  },
+  {
+    "id": "wk-wednesday-pulse",
+    "name": "Wednesday Pulse",
+    "mood": "Momentum",
+    "type": "weekly",
+    "startDate": "2025-09-24",
+    "endDate": "2025-09-24",
+    "description": "Electric cyan and plum glow to reignite midweek energy.",
+    "colorway": ["#1D1F3C", "#5D17D5", "#00A3FF"],
+    "signatureDetail": "pulse-beat",
+    "heroImage": "assets/images/fashion/model_1.jpg",
+    "accessibilityVariant": "reduced-motion",
+    "tags": ["momentum", "neon", "midweek"],
+    "microcopy": {
+      "prompt": "Wednesday Pulse keeps the beat steady.",
+      "success": "Verified. Stay in rhythm.",
+      "error": "The rhythm stuttered—retry the digits."
+    }
+  },
+  {
+    "id": "wk-friday-afterglow",
+    "name": "Friday Afterglow",
+    "mood": "Celebratory",
+    "type": "weekly",
+    "startDate": "2025-09-26",
+    "endDate": "2025-09-26",
+    "description": "Champagne gold and deep indigo gradients with sparkle confetti.",
+    "colorway": ["#0D0F24", "#2F2B6C", "#F5C16C"],
+    "signatureDetail": "sparkle-confetti",
+    "heroImage": "assets/images/fashion/model_2.jpg",
+    "accessibilityVariant": "high-contrast",
+    "tags": ["celebration", "afterglow", "weekend"],
+    "microcopy": {
+      "prompt": "Friday Afterglow wraps you in celebration.",
+      "success": "Verified. Dance into the night.",
+      "error": "Digits slipped—try again to unlock the afterglow."
+    }
+  },
+  {
+    "id": "season-autumn-ember",
+    "name": "Autumn Ember Nights",
+    "mood": "Reflective",
+    "type": "seasonal",
+    "startDate": "2025-10-06",
+    "endDate": "2025-11-10",
+    "description": "Smoked copper meets forest haze; velvet grain overlays and warm glow.",
+    "colorway": ["#20120B", "#4E2C18", "#C47C51"],
+    "signatureDetail": "ember-veil",
+    "heroImage": "assets/images/fashion/model_3.jpg",
+    "accessibilityVariant": "reduced-motion",
+    "tags": ["seasonal", "ember", "velvet"],
+    "microcopy": {
+      "prompt": "Autumn Ember Nights slows everything to a warm hush.",
+      "success": "Verified. Settle into the ember glow.",
+      "error": "Digits cooled—reignite them and retry."
+    }
+  }
+]
