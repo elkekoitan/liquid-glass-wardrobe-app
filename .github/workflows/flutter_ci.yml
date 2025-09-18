@@ -1,4 +1,4 @@
-name: Flutter CI
+name: Flutter CI/CD
 
 on:
   push:
@@ -6,10 +6,15 @@ on:
   pull_request:
     branches: [ main, develop ]
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+env:
+  FLUTTER_VERSION: '3.24.0'
 
+jobs:
+  # Code Quality and Testing Job
+  test:
+    name: Code Quality & Tests
+    runs-on: ubuntu-latest
+    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -17,16 +22,208 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.0'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Create .env file
+        run: |
+          echo "FIREBASE_WEB_API_KEY=${{ secrets.FIREBASE_WEB_API_KEY }}" >> .env
+          echo "FIREBASE_WEB_APP_ID=${{ secrets.FIREBASE_WEB_APP_ID }}" >> .env
+          echo "FIREBASE_WEB_MESSAGING_SENDER_ID=${{ secrets.FIREBASE_WEB_MESSAGING_SENDER_ID }}" >> .env
+          echo "FIREBASE_WEB_PROJECT_ID=${{ secrets.FIREBASE_WEB_PROJECT_ID }}" >> .env
+          echo "FIREBASE_WEB_AUTH_DOMAIN=${{ secrets.FIREBASE_WEB_AUTH_DOMAIN }}" >> .env
+          echo "FIREBASE_WEB_STORAGE_BUCKET=${{ secrets.FIREBASE_WEB_STORAGE_BUCKET }}" >> .env
+          echo "FIREBASE_WEB_MEASUREMENT_ID=${{ secrets.FIREBASE_WEB_MEASUREMENT_ID }}" >> .env
+          echo "FIREBASE_ANDROID_API_KEY=${{ secrets.FIREBASE_ANDROID_API_KEY }}" >> .env
+          echo "FIREBASE_ANDROID_APP_ID=${{ secrets.FIREBASE_ANDROID_APP_ID }}" >> .env
+          echo "FIREBASE_IOS_API_KEY=${{ secrets.FIREBASE_IOS_API_KEY }}" >> .env
+          echo "FIREBASE_IOS_APP_ID=${{ secrets.FIREBASE_IOS_APP_ID }}" >> .env
+          echo "FIREBASE_IOS_IOS_BUNDLE_ID=${{ secrets.FIREBASE_IOS_IOS_BUNDLE_ID }}" >> .env
+          echo "FIREBASE_MACOS_API_KEY=${{ secrets.FIREBASE_MACOS_API_KEY }}" >> .env
+          echo "FIREBASE_MACOS_APP_ID=${{ secrets.FIREBASE_MACOS_APP_ID }}" >> .env
+          echo "FIREBASE_MACOS_IOS_BUNDLE_ID=${{ secrets.FIREBASE_MACOS_IOS_BUNDLE_ID }}" >> .env
+          echo "FIREBASE_WINDOWS_API_KEY=${{ secrets.FIREBASE_WINDOWS_API_KEY }}" >> .env
+          echo "FIREBASE_WINDOWS_APP_ID=${{ secrets.FIREBASE_WINDOWS_APP_ID }}" >> .env
+          echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" >> .env
 
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Verify dependencies
+        run: flutter pub deps
+
       - name: Format check
         run: dart format --set-exit-if-changed .
 
-      - name: Analyze
-        run: flutter analyze
+      - name: Analyze code
+        run: flutter analyze --fatal-infos
 
       - name: Run tests
-        run: flutter test
+        run: flutter test --coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: coverage/lcov.info
+          fail_ci_if_error: false
+
+  # Android Build Job
+  build-android:
+    name: Build Android
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Create .env file
+        run: |
+          echo "FIREBASE_WEB_API_KEY=${{ secrets.FIREBASE_WEB_API_KEY }}" >> .env
+          echo "FIREBASE_WEB_APP_ID=${{ secrets.FIREBASE_WEB_APP_ID }}" >> .env
+          echo "FIREBASE_WEB_MESSAGING_SENDER_ID=${{ secrets.FIREBASE_WEB_MESSAGING_SENDER_ID }}" >> .env
+          echo "FIREBASE_WEB_PROJECT_ID=${{ secrets.FIREBASE_WEB_PROJECT_ID }}" >> .env
+          echo "FIREBASE_WEB_AUTH_DOMAIN=${{ secrets.FIREBASE_WEB_AUTH_DOMAIN }}" >> .env
+          echo "FIREBASE_WEB_STORAGE_BUCKET=${{ secrets.FIREBASE_WEB_STORAGE_BUCKET }}" >> .env
+          echo "FIREBASE_WEB_MEASUREMENT_ID=${{ secrets.FIREBASE_WEB_MEASUREMENT_ID }}" >> .env
+          echo "FIREBASE_ANDROID_API_KEY=${{ secrets.FIREBASE_ANDROID_API_KEY }}" >> .env
+          echo "FIREBASE_ANDROID_APP_ID=${{ secrets.FIREBASE_ANDROID_APP_ID }}" >> .env
+          echo "FIREBASE_IOS_API_KEY=${{ secrets.FIREBASE_IOS_API_KEY }}" >> .env
+          echo "FIREBASE_IOS_APP_ID=${{ secrets.FIREBASE_IOS_APP_ID }}" >> .env
+          echo "FIREBASE_IOS_IOS_BUNDLE_ID=${{ secrets.FIREBASE_IOS_IOS_BUNDLE_ID }}" >> .env
+          echo "FIREBASE_MACOS_API_KEY=${{ secrets.FIREBASE_MACOS_API_KEY }}" >> .env
+          echo "FIREBASE_MACOS_APP_ID=${{ secrets.FIREBASE_MACOS_APP_ID }}" >> .env
+          echo "FIREBASE_MACOS_IOS_BUNDLE_ID=${{ secrets.FIREBASE_MACOS_IOS_BUNDLE_ID }}" >> .env
+          echo "FIREBASE_WINDOWS_API_KEY=${{ secrets.FIREBASE_WINDOWS_API_KEY }}" >> .env
+          echo "FIREBASE_WINDOWS_APP_ID=${{ secrets.FIREBASE_WINDOWS_APP_ID }}" >> .env
+          echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" >> .env
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build Android APK
+        run: flutter build apk --release
+
+      - name: Build Android App Bundle
+        run: flutter build appbundle --release
+
+      - name: Upload Android artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: android-builds
+          path: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/bundle/release/app-release.aab
+
+  # Web Build Job
+  build-web:
+    name: Build Web
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Create .env file
+        run: |
+          echo "FIREBASE_WEB_API_KEY=${{ secrets.FIREBASE_WEB_API_KEY }}" >> .env
+          echo "FIREBASE_WEB_APP_ID=${{ secrets.FIREBASE_WEB_APP_ID }}" >> .env
+          echo "FIREBASE_WEB_MESSAGING_SENDER_ID=${{ secrets.FIREBASE_WEB_MESSAGING_SENDER_ID }}" >> .env
+          echo "FIREBASE_WEB_PROJECT_ID=${{ secrets.FIREBASE_WEB_PROJECT_ID }}" >> .env
+          echo "FIREBASE_WEB_AUTH_DOMAIN=${{ secrets.FIREBASE_WEB_AUTH_DOMAIN }}" >> .env
+          echo "FIREBASE_WEB_STORAGE_BUCKET=${{ secrets.FIREBASE_WEB_STORAGE_BUCKET }}" >> .env
+          echo "FIREBASE_WEB_MEASUREMENT_ID=${{ secrets.FIREBASE_WEB_MEASUREMENT_ID }}" >> .env
+          echo "FIREBASE_ANDROID_API_KEY=${{ secrets.FIREBASE_ANDROID_API_KEY }}" >> .env
+          echo "FIREBASE_ANDROID_APP_ID=${{ secrets.FIREBASE_ANDROID_APP_ID }}" >> .env
+          echo "FIREBASE_IOS_API_KEY=${{ secrets.FIREBASE_IOS_API_KEY }}" >> .env
+          echo "FIREBASE_IOS_APP_ID=${{ secrets.FIREBASE_IOS_APP_ID }}" >> .env
+          echo "FIREBASE_IOS_IOS_BUNDLE_ID=${{ secrets.FIREBASE_IOS_IOS_BUNDLE_ID }}" >> .env
+          echo "FIREBASE_MACOS_API_KEY=${{ secrets.FIREBASE_MACOS_API_KEY }}" >> .env
+          echo "FIREBASE_MACOS_APP_ID=${{ secrets.FIREBASE_MACOS_APP_ID }}" >> .env
+          echo "FIREBASE_MACOS_IOS_BUNDLE_ID=${{ secrets.FIREBASE_MACOS_IOS_BUNDLE_ID }}" >> .env
+          echo "FIREBASE_WINDOWS_API_KEY=${{ secrets.FIREBASE_WINDOWS_API_KEY }}" >> .env
+          echo "FIREBASE_WINDOWS_APP_ID=${{ secrets.FIREBASE_WINDOWS_APP_ID }}" >> .env
+          echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" >> .env
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build Web
+        run: flutter build web --release
+
+      - name: Upload Web artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: web-build
+          path: build/web/
+
+  # iOS Build Job (macOS runner required)
+  build-ios:
+    name: Build iOS
+    runs-on: macos-latest
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Create .env file
+        run: |
+          echo "FIREBASE_WEB_API_KEY=${{ secrets.FIREBASE_WEB_API_KEY }}" >> .env
+          echo "FIREBASE_WEB_APP_ID=${{ secrets.FIREBASE_WEB_APP_ID }}" >> .env
+          echo "FIREBASE_WEB_MESSAGING_SENDER_ID=${{ secrets.FIREBASE_WEB_MESSAGING_SENDER_ID }}" >> .env
+          echo "FIREBASE_WEB_PROJECT_ID=${{ secrets.FIREBASE_WEB_PROJECT_ID }}" >> .env
+          echo "FIREBASE_WEB_AUTH_DOMAIN=${{ secrets.FIREBASE_WEB_AUTH_DOMAIN }}" >> .env
+          echo "FIREBASE_WEB_STORAGE_BUCKET=${{ secrets.FIREBASE_WEB_STORAGE_BUCKET }}" >> .env
+          echo "FIREBASE_WEB_MEASUREMENT_ID=${{ secrets.FIREBASE_WEB_MEASUREMENT_ID }}" >> .env
+          echo "FIREBASE_ANDROID_API_KEY=${{ secrets.FIREBASE_ANDROID_API_KEY }}" >> .env
+          echo "FIREBASE_ANDROID_APP_ID=${{ secrets.FIREBASE_ANDROID_APP_ID }}" >> .env
+          echo "FIREBASE_IOS_API_KEY=${{ secrets.FIREBASE_IOS_API_KEY }}" >> .env
+          echo "FIREBASE_IOS_APP_ID=${{ secrets.FIREBASE_IOS_APP_ID }}" >> .env
+          echo "FIREBASE_IOS_IOS_BUNDLE_ID=${{ secrets.FIREBASE_IOS_IOS_BUNDLE_ID }}" >> .env
+          echo "FIREBASE_MACOS_API_KEY=${{ secrets.FIREBASE_MACOS_API_KEY }}" >> .env
+          echo "FIREBASE_MACOS_APP_ID=${{ secrets.FIREBASE_MACOS_APP_ID }}" >> .env
+          echo "FIREBASE_MACOS_IOS_BUNDLE_ID=${{ secrets.FIREBASE_MACOS_IOS_BUNDLE_ID }}" >> .env
+          echo "FIREBASE_WINDOWS_API_KEY=${{ secrets.FIREBASE_WINDOWS_API_KEY }}" >> .env
+          echo "FIREBASE_WINDOWS_APP_ID=${{ secrets.FIREBASE_WINDOWS_APP_ID }}" >> .env
+          echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" >> .env
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build iOS (no codesign)
+        run: flutter build ios --release --no-codesign
+
+      - name: Upload iOS artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ios-build
+          path: build/ios/iphoneos/

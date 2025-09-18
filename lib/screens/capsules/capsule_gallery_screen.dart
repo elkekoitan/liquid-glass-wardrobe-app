@@ -35,16 +35,26 @@ class _CapsuleGalleryView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<CapsuleProvider>();
+    final highContrast = context.select<PersonalizationProvider, bool>(
+      (prefs) => prefs.highContrast,
+    );
+    final LinearGradient backgroundGradient = highContrast
+        ? const LinearGradient(
+            colors: [Color(0xFF000000), Color(0xFF1C1C1C)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          )
+        : const LinearGradient(
+            colors: [Color(0xFF05060B), Color(0xFF101524)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          );
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF05060B), Color(0xFF101524)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
+        decoration: BoxDecoration(
+          gradient: backgroundGradient,
         ),
         child: SafeArea(
           child: provider.isLoading
@@ -67,6 +77,8 @@ class _GalleryContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final personalization = context.watch<PersonalizationProvider>();
     final selected = provider.selected;
+    final bool highContrast = personalization.highContrast;
+    final bool reducedMotion = personalization.reducedMotion;
     final isDefault =
         selected != null && personalization.defaultCapsule == selected.id;
 
@@ -79,9 +91,14 @@ class _GalleryContent extends StatelessWidget {
       );
     }
 
+    final Color refreshIndicatorColor = highContrast ? Colors.white : Colors.white;
+    final Color refreshBackgroundColor = highContrast
+        ? Colors.black
+        : const Color(0xFF05060B);
+
     return RefreshIndicator(
-      color: Colors.white,
-      backgroundColor: Colors.black,
+      color: refreshIndicatorColor,
+      backgroundColor: refreshBackgroundColor,
       onRefresh: () => provider.load(refresh: true),
       child: ListView(
         padding: const EdgeInsets.symmetric(
@@ -137,6 +154,17 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final highContrast = context.select<PersonalizationProvider, bool>(
+      (prefs) => prefs.highContrast,
+    );
+    final Color labelColor = highContrast
+        ? Colors.white.withValues(alpha: 0.85)
+        : Colors.white70;
+    final Color titleColor = Colors.white;
+    final Color iconColor = highContrast
+        ? Colors.white
+        : Colors.white70;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -146,7 +174,7 @@ class _Header extends StatelessWidget {
             Text(
               selected.mood.toUpperCase(),
               style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                color: Colors.white70,
+                color: labelColor,
                 letterSpacing: 1.5,
               ),
             ),
@@ -154,14 +182,17 @@ class _Header extends StatelessWidget {
             Text(
               'Capsule Gallery',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: Colors.white,
+                color: titleColor,
                 fontWeight: FontWeight.w600,
               ),
             ),
           ],
         ),
         IconButton(
-          icon: const Icon(Icons.settings_outlined, color: Colors.white70),
+          icon: Icon(
+            Icons.settings_outlined,
+            color: iconColor,
+          ),
           onPressed: () {
             Navigator.of(context).pushNamed(AppRouter.personalization);
           },
@@ -202,7 +233,7 @@ class _SelectedCapsuleCard extends StatelessWidget {
                       image: AssetImage(capsule.heroImage),
                       fit: BoxFit.cover,
                       colorFilter: ColorFilter.mode(
-                        Colors.black.withOpacity(0.35),
+                        Colors.black.withValues(alpha: 0.35),
                         BlendMode.darken,
                       ),
                     )
@@ -233,7 +264,7 @@ class _SelectedCapsuleCard extends StatelessWidget {
                             vertical: AppSpacing.xs,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(24),
                           ),
                           child: const Text(
@@ -268,7 +299,7 @@ class _SelectedCapsuleCard extends StatelessWidget {
                             .map(
                               (tag) => Chip(
                                 label: Text(tag),
-                                backgroundColor: Colors.white.withOpacity(0.12),
+                                backgroundColor: Colors.white.withValues(alpha: 0.12),
                                 labelStyle: const TextStyle(
                                   color: Colors.white70,
                                 ),
@@ -392,8 +423,8 @@ class _CapsuleCarousel extends StatelessWidget {
                 ),
                 gradient: LinearGradient(
                   colors: [
-                    Colors.white.withOpacity(0.1),
-                    Colors.white.withOpacity(0.02),
+                    Colors.white.withValues(alpha: 0.1),
+                    Colors.white.withValues(alpha: 0.02),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -402,7 +433,7 @@ class _CapsuleCarousel extends StatelessWidget {
                   if (isActive || isDefault)
                     BoxShadow(
                       color: (isDefault ? Colors.pinkAccent : Colors.white)
-                          .withOpacity(0.25),
+                          .withValues(alpha: 0.25),
                       blurRadius: 18,
                       spreadRadius: 1.5,
                     ),
@@ -421,7 +452,7 @@ class _CapsuleCarousel extends StatelessWidget {
                             child: Image.asset(
                               capsule.heroImage,
                               fit: BoxFit.cover,
-                              color: Colors.black.withOpacity(0.25),
+                              color: Colors.black.withValues(alpha: 0.25),
                               colorBlendMode: BlendMode.darken,
                             ),
                           ),
@@ -455,7 +486,7 @@ class _CapsuleCarousel extends StatelessWidget {
                           vertical: AppSpacing.xxs,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.pinkAccent.withOpacity(0.9),
+                          color: Colors.pinkAccent.withValues(alpha: 0.9),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: const Text(
