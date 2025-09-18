@@ -53,9 +53,7 @@ class _CapsuleGalleryView extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Container(
-        decoration: BoxDecoration(
-          gradient: backgroundGradient,
-        ),
+        decoration: BoxDecoration(gradient: backgroundGradient),
         child: SafeArea(
           child: provider.isLoading
               ? const Center(child: CircularProgressIndicator())
@@ -91,7 +89,9 @@ class _GalleryContent extends StatelessWidget {
       );
     }
 
-    final Color refreshIndicatorColor = highContrast ? Colors.white : Colors.white;
+    final Color refreshIndicatorColor = highContrast
+        ? Colors.white
+        : Colors.white;
     final Color refreshBackgroundColor = highContrast
         ? Colors.black
         : const Color(0xFF05060B);
@@ -138,6 +138,8 @@ class _GalleryContent extends StatelessWidget {
             onSelect: provider.selectCapsule,
             selectedId: selected.id,
             defaultId: personalization.defaultCapsule,
+            reducedMotion: reducedMotion,
+            highContrast: highContrast,
           ),
           const SizedBox(height: AppSpacing.xxl),
           _MicrocopyPanel(microcopy: selected.microcopy),
@@ -161,9 +163,7 @@ class _Header extends StatelessWidget {
         ? Colors.white.withValues(alpha: 0.85)
         : Colors.white70;
     final Color titleColor = Colors.white;
-    final Color iconColor = highContrast
-        ? Colors.white
-        : Colors.white70;
+    final Color iconColor = highContrast ? Colors.white : Colors.white70;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -189,10 +189,7 @@ class _Header extends StatelessWidget {
           ],
         ),
         IconButton(
-          icon: Icon(
-            Icons.settings_outlined,
-            color: iconColor,
-          ),
+          icon: Icon(Icons.settings_outlined, color: iconColor),
           onPressed: () {
             Navigator.of(context).pushNamed(AppRouter.personalization);
           },
@@ -215,10 +212,42 @@ class _SelectedCapsuleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final highContrast = context.select<PersonalizationProvider, bool>(
+      (prefs) => prefs.highContrast,
+    );
     final gradient = _buildGradient(capsule.colorway);
+    final Color descriptionColor = highContrast
+        ? Colors.white.withValues(alpha: 0.9)
+        : Colors.white70;
+    final Color chipBackground = highContrast
+        ? Colors.white.withValues(alpha: 0.85)
+        : Colors.white.withValues(alpha: 0.12);
+    final Color chipText = highContrast ? Colors.black : Colors.white70;
+    final Color statusBackground = highContrast
+        ? Colors.white.withValues(alpha: 0.28)
+        : Colors.white.withValues(alpha: 0.2);
+    final Color statusText = highContrast ? Colors.black : Colors.white;
+    final Color accentColor = highContrast
+        ? Colors.cyanAccent
+        : Colors.pinkAccent;
+    final Color secondaryIconColor = highContrast
+        ? Colors.white.withValues(alpha: 0.85)
+        : Colors.white70;
+    final List<Color>? glassGradient = highContrast
+        ? [
+            Colors.white.withValues(alpha: 0.12),
+            Colors.white.withValues(alpha: 0.06),
+          ]
+        : null;
+    final Color glassBorderColor = highContrast
+        ? Colors.white.withValues(alpha: 0.2)
+        : Colors.white.withValues(alpha: 0.15);
+    final bool canActivate = !isDefault && onActivate != null;
 
     return GlassContainer(
       padding: const EdgeInsets.all(AppSpacing.cardPadding),
+      gradientColors: glassGradient,
+      borderColor: glassBorderColor,
       borderRadius: BorderRadius.circular(32),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -264,13 +293,13 @@ class _SelectedCapsuleCard extends StatelessWidget {
                             vertical: AppSpacing.xs,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.2),
+                            color: statusBackground,
                             borderRadius: BorderRadius.circular(24),
                           ),
-                          child: const Text(
+                          child: Text(
                             'Default Capsule',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: statusText,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -288,7 +317,7 @@ class _SelectedCapsuleCard extends StatelessWidget {
                       Text(
                         capsule.description,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.white70,
+                          color: descriptionColor,
                           height: 1.4,
                         ),
                       ),
@@ -299,10 +328,8 @@ class _SelectedCapsuleCard extends StatelessWidget {
                             .map(
                               (tag) => Chip(
                                 label: Text(tag),
-                                backgroundColor: Colors.white.withValues(alpha: 0.12),
-                                labelStyle: const TextStyle(
-                                  color: Colors.white70,
-                                ),
+                                backgroundColor: chipBackground,
+                                labelStyle: TextStyle(color: chipText),
                               ),
                             )
                             .toList(),
@@ -318,19 +345,16 @@ class _SelectedCapsuleCard extends StatelessWidget {
             children: [
               Expanded(
                 child: GlassButton(
-                  onPressed: isDefault || onActivate == null
-                      ? null
-                      : () {
-                          onActivate!();
-                        },
+                  onPressed: canActivate ? () => onActivate!() : null,
+                  color: highContrast ? Colors.white : null,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
                       vertical: AppSpacing.md,
                     ),
                     child: Text(
                       isDefault ? 'Active Capsule' : 'Make Default',
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: highContrast ? Colors.black : Colors.white,
                         fontWeight: FontWeight.w600,
                         fontSize: 16,
                       ),
@@ -340,14 +364,10 @@ class _SelectedCapsuleCard extends StatelessWidget {
               ),
               const SizedBox(width: AppSpacing.lg),
               IconButton(
-                onPressed: isDefault || onActivate == null
-                    ? null
-                    : () {
-                        onActivate!();
-                      },
+                onPressed: canActivate ? () => onActivate!() : null,
                 icon: Icon(
                   isDefault ? Icons.favorite : Icons.favorite_border,
-                  color: isDefault ? Colors.pinkAccent : Colors.white70,
+                  color: isDefault ? accentColor : secondaryIconColor,
                 ),
               ),
             ],
@@ -384,18 +404,43 @@ class _CapsuleCarousel extends StatelessWidget {
     required this.onSelect,
     required this.selectedId,
     required this.defaultId,
+    required this.reducedMotion,
+    required this.highContrast,
   });
 
   final List<CapsuleModel> capsules;
   final void Function(String id) onSelect;
   final String selectedId;
   final String defaultId;
+  final bool reducedMotion;
+  final bool highContrast;
 
   @override
   Widget build(BuildContext context) {
-    final reducedMotion = context.select<PersonalizationProvider, bool>(
-      (prefs) => prefs.reducedMotion,
-    );
+    final Color activeBorderColor = Colors.white;
+    final Color defaultBorderColor = highContrast
+        ? Colors.cyanAccent
+        : Colors.pinkAccent;
+    final Color inactiveBorderColor = highContrast
+        ? Colors.white.withValues(alpha: 0.45)
+        : Colors.white24;
+    final List<Color> tileGradient = highContrast
+        ? [
+            Colors.white.withValues(alpha: 0.2),
+            Colors.white.withValues(alpha: 0.08),
+          ]
+        : [
+            Colors.white.withValues(alpha: 0.1),
+            Colors.white.withValues(alpha: 0.02),
+          ];
+    final Color titleColor = Colors.white;
+    final Color subtitleColor = highContrast
+        ? Colors.white.withValues(alpha: 0.8)
+        : Colors.white60;
+    final Color defaultBadgeBackground = defaultBorderColor;
+    final Color defaultBadgeTextColor = highContrast
+        ? Colors.black
+        : Colors.white;
 
     return SizedBox(
       height: 160,
@@ -417,23 +462,21 @@ class _CapsuleCarousel extends StatelessWidget {
                 borderRadius: BorderRadius.circular(32),
                 border: Border.all(
                   color: isDefault
-                      ? Colors.pinkAccent
-                      : (isActive ? Colors.white : Colors.white24),
+                      ? defaultBorderColor
+                      : (isActive ? activeBorderColor : inactiveBorderColor),
                   width: isDefault || isActive ? 2.0 : 1.0,
                 ),
                 gradient: LinearGradient(
-                  colors: [
-                    Colors.white.withValues(alpha: 0.1),
-                    Colors.white.withValues(alpha: 0.02),
-                  ],
+                  colors: tileGradient,
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 boxShadow: [
                   if (isActive || isDefault)
                     BoxShadow(
-                      color: (isDefault ? Colors.pinkAccent : Colors.white)
-                          .withValues(alpha: 0.25),
+                      color:
+                          (isDefault ? defaultBorderColor : activeBorderColor)
+                              .withValues(alpha: 0.25),
                       blurRadius: 18,
                       spreadRadius: 1.5,
                     ),
@@ -464,14 +507,15 @@ class _CapsuleCarousel extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: Theme.of(context).textTheme.titleSmall
                               ?.copyWith(
-                                color: Colors.white,
+                                color: titleColor,
                                 fontWeight: FontWeight.w600,
                               ),
                         ),
                         Text(
                           capsule.mood,
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: Colors.white60),
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodySmall?.copyWith(color: subtitleColor),
                         ),
                       ],
                     ),
@@ -486,13 +530,13 @@ class _CapsuleCarousel extends StatelessWidget {
                           vertical: AppSpacing.xxs,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.pinkAccent.withValues(alpha: 0.9),
+                          color: defaultBadgeBackground.withValues(alpha: 0.9),
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: const Text(
+                        child: Text(
                           'DEFAULT',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: defaultBadgeTextColor,
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
                             letterSpacing: 0.6,
@@ -517,16 +561,32 @@ class _MicrocopyPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final highContrast = context.select<PersonalizationProvider, bool>(
+      (prefs) => prefs.highContrast,
+    );
+    final List<Color>? glassGradient = highContrast
+        ? [
+            Colors.white.withValues(alpha: 0.12),
+            Colors.white.withValues(alpha: 0.05),
+          ]
+        : null;
+    final Color borderColor = highContrast
+        ? Colors.white.withValues(alpha: 0.18)
+        : Colors.white.withValues(alpha: 0.12);
+    final Color headingColor = Colors.white;
+
     return GlassContainer(
       padding: const EdgeInsets.all(AppSpacing.cardPadding),
       borderRadius: BorderRadius.circular(24),
+      gradientColors: glassGradient,
+      borderColor: borderColor,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Microcopy',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Colors.white,
+              color: headingColor,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -548,6 +608,16 @@ class _MicrocopyRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final highContrast = context.select<PersonalizationProvider, bool>(
+      (prefs) => prefs.highContrast,
+    );
+    final Color labelColor = highContrast
+        ? Colors.white.withValues(alpha: 0.85)
+        : Colors.white54;
+    final Color valueColor = highContrast
+        ? Colors.white.withValues(alpha: 0.9)
+        : Colors.white70;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: Column(
@@ -556,17 +626,16 @@ class _MicrocopyRow extends StatelessWidget {
           Text(
             label,
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: Colors.white54,
+              color: labelColor,
               letterSpacing: 0.6,
             ),
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
             value,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.white70,
-              height: 1.4,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: valueColor, height: 1.4),
           ),
         ],
       ),

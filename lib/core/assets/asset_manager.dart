@@ -5,24 +5,21 @@ class AppAssets {
   AppAssets._();
 
   // === IMAGE ASSETS ===
-  
+
   /// Main image assets folder
   static const String _images = 'assets/images';
-  
+
   /// Fashion category images
   static const String _fashion = '$_images/fashion';
-  
+
   /// Category icons and images
   static const String _categories = '$_images/categories';
-  
+
   /// Onboarding screen assets
   static const String _onboarding = '$_images/onboarding';
-  
+
   /// Wardrobe item images
   static const String _wardrobe = '$_images/wardrobe';
-  
-  /// Model photos for AI try-on
-  static const String _models = '$_images/models';
 
   // === MAIN IMAGES ===
   static const String modelPhoto = '$_images/model.jpg';
@@ -52,7 +49,7 @@ class AppAssets {
   static const String fashionShoes = '$_fashion/shoes';
   static const String fashionAccessories = '$_fashion/accessories';
   static const String fashionOuterwear = '$_fashion/outerwear';
-  
+
   // === CATEGORY ICONS ===
   static const String categoryWomen = '$_categories/women.svg';
   static const String categoryMen = '$_categories/men.svg';
@@ -60,7 +57,7 @@ class AppAssets {
   static const String categoryAccessories = '$_categories/accessories.svg';
   static const String categoryShoes = '$_categories/shoes.svg';
   static const String categorySale = '$_categories/sale.svg';
-  
+
   // === ONBOARDING ASSETS ===
   static const String onboardingWelcome = '$_onboarding/welcome.svg';
   static const String onboardingTryOn = '$_onboarding/try_on.svg';
@@ -70,17 +67,17 @@ class AppAssets {
   // === WARDROBE ASSETS ===
   static const String wardrobePlaceholder = '$_wardrobe/placeholder.svg';
   static const String wardrobeEmpty = '$_wardrobe/empty_state.svg';
-  
+
   // === ICONS ===
   static const String _icons = 'assets/icons';
-  
+
   // Navigation icons
   static const String iconHome = '$_icons/home.svg';
   static const String iconWardrobe = '$_icons/wardrobe.svg';
   static const String iconCamera = '$_icons/camera.svg';
   static const String iconOutfits = '$_icons/outfits.svg';
   static const String iconProfile = '$_icons/profile.svg';
-  
+
   // Feature icons
   static const String iconTryOn = '$_icons/try_on.svg';
   static const String iconShare = '$_icons/share.svg';
@@ -88,15 +85,15 @@ class AppAssets {
   static const String iconSearch = '$_icons/search.svg';
   static const String iconFilter = '$_icons/filter.svg';
   static const String iconSort = '$_icons/sort.svg';
-  
+
   // Social icons
   static const String iconLike = '$_icons/like.svg';
   static const String iconComment = '$_icons/comment.svg';
   static const String iconFollow = '$_icons/follow.svg';
-  
+
   // === ANIMATIONS ===
   static const String _animations = 'assets/animations';
-  
+
   static const String animationLoading = '$_animations/loading.json';
   static const String animationSuccess = '$_animations/success.json';
   static const String animationError = '$_animations/error.json';
@@ -106,18 +103,18 @@ class AppAssets {
   static const String animationTryOn = '$_animations/try_on.json';
   static const String animationHeartbeat = '$_animations/heartbeat.json';
   static const String animationSparkle = '$_animations/sparkle.json';
-  
+
   // === SHADER ASSETS ===
   static const String _shaders = 'shaders';
-  
+
   static const String shaderLiquidGlass = '$_shaders/liquid_glass.frag';
   static const String shaderWaveEffect = '$_shaders/wave_effect.frag';
   static const String shaderRefraction = '$_shaders/refraction.frag';
   static const String shaderBlur = '$_shaders/blur.frag';
   static const String shaderGlow = '$_shaders/glow.frag';
-  
+
   // === UTILITY METHODS ===
-  
+
   /// Get all model images as a list
   static List<String> get allModelImages => [
     modelPhoto,
@@ -130,21 +127,17 @@ class AppAssets {
     model6,
     model7,
   ];
-  
+
   /// Get all item images as a list
-  static List<String> get allItemImages => [
-    item1,
-    item2,
-    item3,
-  ];
-  
+  static List<String> get allItemImages => [item1, item2, item3];
+
   /// Get all wishlist images as a list
   static List<String> get allWishlistImages => [
     wishlist0,
     wishlist1,
     wishlist2,
   ];
-  
+
   /// Get category icons as a map
   static Map<String, String> get categoryIcons => {
     'women': categoryWomen,
@@ -154,7 +147,7 @@ class AppAssets {
     'shoes': categoryShoes,
     'sale': categorySale,
   };
-  
+
   /// Get onboarding assets as a list
   static List<String> get onboardingAssets => [
     onboardingWelcome,
@@ -162,7 +155,7 @@ class AppAssets {
     onboardingAI,
     onboardingPersonalize,
   ];
-  
+
   /// Get navigation icons as a map
   static Map<String, String> get navigationIcons => {
     'home': iconHome,
@@ -171,7 +164,7 @@ class AppAssets {
     'outfits': iconOutfits,
     'profile': iconProfile,
   };
-  
+
   /// Get feature icons as a map
   static Map<String, String> get featureIcons => {
     'try_on': iconTryOn,
@@ -181,14 +174,14 @@ class AppAssets {
     'filter': iconFilter,
     'sort': iconSort,
   };
-  
+
   /// Get social icons as a map
   static Map<String, String> get socialIcons => {
     'like': iconLike,
     'comment': iconComment,
     'follow': iconFollow,
   };
-  
+
   /// Get animation assets as a map
   static Map<String, String> get animations => {
     'loading': animationLoading,
@@ -201,7 +194,7 @@ class AppAssets {
     'heartbeat': animationHeartbeat,
     'sparkle': animationSparkle,
   };
-  
+
   /// Get shader assets as a map
   static Map<String, String> get shaders => {
     'liquid_glass': shaderLiquidGlass,
@@ -210,13 +203,14 @@ class AppAssets {
     'blur': shaderBlur,
     'glow': shaderGlow,
   };
-  
+
   /// Get random model image
   static String getRandomModelImage() {
-    final random = (DateTime.now().millisecondsSinceEpoch % allModelImages.length);
+    final random =
+        (DateTime.now().millisecondsSinceEpoch % allModelImages.length);
     return allModelImages[random];
   }
-  
+
   /// Check if asset exists (utility method for development)
   static bool assetExists(String path) {
     try {
@@ -227,7 +221,7 @@ class AppAssets {
       return false;
     }
   }
-  
+
   /// Get all defined assets (for validation)
   static List<String> _getAllAssets() {
     return [
@@ -245,7 +239,7 @@ class AppAssets {
       wardrobeEmpty,
     ];
   }
-  
+
   /// Get assets by category for easy organization
   static Map<String, List<String>> get assetsByCategory => {
     'models': allModelImages,
@@ -264,33 +258,33 @@ class AppAssets {
 /// Asset path validator and helper utilities
 class AssetHelper {
   AssetHelper._();
-  
+
   /// Validate if an asset path is properly formatted
   static bool isValidAssetPath(String path) {
     return path.startsWith('assets/') && path.contains('.');
   }
-  
+
   /// Get file extension from asset path
   static String getFileExtension(String path) {
     return path.split('.').last.toLowerCase();
   }
-  
+
   /// Check if asset is an image
   static bool isImageAsset(String path) {
     final extension = getFileExtension(path);
     return ['jpg', 'jpeg', 'png', 'svg', 'webp'].contains(extension);
   }
-  
+
   /// Check if asset is an animation (Lottie)
   static bool isAnimationAsset(String path) {
     return getFileExtension(path) == 'json' && path.contains('animations');
   }
-  
+
   /// Check if asset is a shader
   static bool isShaderAsset(String path) {
     return getFileExtension(path) == 'frag' && path.contains('shaders');
   }
-  
+
   /// Get asset category from path
   static String getAssetCategory(String path) {
     if (path.contains('/images/')) {
@@ -300,11 +294,11 @@ class AssetHelper {
       if (path.contains('/wardrobe/')) return 'wardrobe';
       return 'images';
     }
-    
+
     if (path.contains('/icons/')) return 'icons';
     if (path.contains('/animations/')) return 'animations';
     if (path.contains('shaders/')) return 'shaders';
-    
+
     return 'unknown';
   }
 }

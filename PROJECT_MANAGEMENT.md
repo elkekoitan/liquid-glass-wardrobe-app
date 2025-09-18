@@ -1,4 +1,4 @@
-# 🎯 LIQUID GLASS OTP FLUTTER APP - PROJECT MANAGEMENT MATRIX
+# 🎯 FITCHECK - AI VIRTUAL TRY-ON FASHION APP - PROJECT MANAGEMENT MATRIX
 
 ## 📊 PROJECT OVERVIEW
 **Project Name**: FitCheck - AI Virtual Try-On Fashion App  
@@ -11,6 +11,9 @@
 
 ## 🔄 Latest Progress (2025-09-18)
 - Home surfaces adapt to personalization: high contrast palette, reduced-motion falls back, and glass buttons gate haptics/sound settings.
+- Capsule gallery and action controls now mirror personalization: contrast-aware surfaces, reduced motion toggles, and disabled buttons mute feedback.
+- Onboarding and OTP flows now honour personalization defaults and ditch deprecated opacity helpers across the design system.
+- Analyzer pass now clean: deprecated opacity replaced project-wide, async context fixes applied, and smoke test updated.
 - Linked home quick actions to live capsule, personalization, and OTP flows.
 - Capsule gallery now honors personalization defaults and allows in-app activation with feedback.
 - OTP experience loads the preferred capsule and responds to reduced motion, high contrast, haptics, and sound toggles.

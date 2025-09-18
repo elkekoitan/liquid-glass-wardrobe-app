@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import '../design_tokens.dart';
 
 enum ModernButtonVariant {
@@ -51,13 +50,10 @@ class _ModernButtonState extends State<ModernButton>
     with TickerProviderStateMixin {
   late AnimationController _scaleController;
   late AnimationController _shimmerController;
-  late AnimationController _elevationController;
   late Animation<double> _scaleAnimation;
   late Animation<double> _shimmerAnimation;
-  late Animation<double> _elevationAnimation;
 
   bool _isPressed = false;
-  final bool _isHovered = false;
 
   @override
   void initState() {
@@ -70,11 +66,6 @@ class _ModernButtonState extends State<ModernButton>
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     )..repeat();
-    _elevationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 150),
-    );
-
     _scaleAnimation =
         Tween<double>(
           begin: 1.0,
@@ -86,24 +77,12 @@ class _ModernButtonState extends State<ModernButton>
     _shimmerAnimation = Tween<double>(begin: -1.0, end: 1.0).animate(
       CurvedAnimation(parent: _shimmerController, curve: Curves.easeInOut),
     );
-
-    _elevationAnimation =
-        Tween<double>(
-          begin: 0.0,
-          end: 8.0, // Professional shadow elevation
-        ).animate(
-          CurvedAnimation(
-            parent: _elevationController,
-            curve: Curves.easeOutCubic,
-          ),
-        );
   }
 
   @override
   void dispose() {
     _scaleController.dispose();
     _shimmerController.dispose();
-    _elevationController.dispose();
     super.dispose();
   }
 
@@ -123,39 +102,6 @@ class _ModernButtonState extends State<ModernButton>
   void _handleTapCancel() {
     setState(() => _isPressed = false);
     _scaleController.reverse();
-  }
-
-  ButtonStyle _getButtonStyle() {
-    final colors = _getColorScheme();
-    final sizes = _getSizeValues();
-
-    return ButtonStyle(
-      backgroundColor: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.disabled)) {
-          return colors.background.withOpacity(0.5);
-        }
-        if (states.contains(WidgetState.pressed)) {
-          return colors.backgroundPressed;
-        }
-        if (states.contains(WidgetState.hovered)) {
-          return colors.backgroundHovered;
-        }
-        return colors.background;
-      }),
-      foregroundColor: WidgetStateProperty.all(colors.foreground),
-      elevation: WidgetStateProperty.all(0),
-      padding: WidgetStateProperty.all(sizes.padding),
-      minimumSize: WidgetStateProperty.all(sizes.minimumSize),
-      shape: WidgetStateProperty.all(
-        RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(sizes.borderRadius),
-          side: colors.borderColor != null
-              ? BorderSide(color: colors.borderColor!, width: 1.5)
-              : BorderSide.none,
-        ),
-      ),
-      overlayColor: WidgetStateProperty.all(Colors.transparent),
-    );
   }
 
   _ButtonColors _getColorScheme() {
@@ -199,10 +145,10 @@ class _ModernButtonState extends State<ModernButton>
       case ModernButtonVariant.glass:
         return _ButtonColors(
           background: AppColors.glassLight,
-          backgroundHovered: AppColors.glassLight.withOpacity(0.3),
-          backgroundPressed: AppColors.glassLight.withOpacity(0.4),
+          backgroundHovered: AppColors.glassLight.withValues(alpha: 0.3),
+          backgroundPressed: AppColors.glassLight.withValues(alpha: 0.4),
           foreground: AppColors.neutral900,
-          borderColor: AppColors.neutral200.withOpacity(0.5),
+          borderColor: AppColors.neutral200.withValues(alpha: 0.5),
         );
       case ModernButtonVariant.gradient:
         return _ButtonColors(

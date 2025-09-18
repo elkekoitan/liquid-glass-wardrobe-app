@@ -8,30 +8,30 @@ class AppSpacing {
 
   // Spacing scale
   static const double xxxs = baseUnit * 0.25; // 2px
-  static const double xxs = baseUnit * 0.5;   // 4px
-  static const double xs = baseUnit * 0.75;   // 6px
-  static const double sm = baseUnit * 1.0;    // 8px
-  static const double md = baseUnit * 1.5;    // 12px
-  static const double lg = baseUnit * 2.0;    // 16px
-  static const double xl = baseUnit * 2.5;    // 20px
-  static const double xxl = baseUnit * 3.0;   // 24px
-  static const double xxxl = baseUnit * 4.0;  // 32px
-  static const double huge = baseUnit * 5.0;  // 40px
+  static const double xxs = baseUnit * 0.5; // 4px
+  static const double xs = baseUnit * 0.75; // 6px
+  static const double sm = baseUnit * 1.0; // 8px
+  static const double md = baseUnit * 1.5; // 12px
+  static const double lg = baseUnit * 2.0; // 16px
+  static const double xl = baseUnit * 2.5; // 20px
+  static const double xxl = baseUnit * 3.0; // 24px
+  static const double xxxl = baseUnit * 4.0; // 32px
+  static const double huge = baseUnit * 5.0; // 40px
   static const double massive = baseUnit * 6.0; // 48px
-  static const double giant = baseUnit * 8.0;   // 64px
+  static const double giant = baseUnit * 8.0; // 64px
 
   // Screen margins and padding
   static const double screenMarginHorizontal = lg; // 16px
-  static const double screenMarginVertical = xl;   // 20px
-  static const double screenPadding = lg;          // 16px
+  static const double screenMarginVertical = xl; // 20px
+  static const double screenPadding = lg; // 16px
 
   // Component specific spacing
-  static const double cardPadding = lg;             // 16px
-  static const double cardMargin = md;              // 12px
-  static const double buttonPadding = md;           // 12px
-  static const double buttonMinHeight = 48.0;      // Minimum touch target
-  static const double inputPadding = lg;            // 16px
-  static const double inputHeight = 56.0;          // Standard input height
+  static const double cardPadding = lg; // 16px
+  static const double cardMargin = md; // 12px
+  static const double buttonPadding = md; // 12px
+  static const double buttonMinHeight = 48.0; // Minimum touch target
+  static const double inputPadding = lg; // 16px
+  static const double inputHeight = 56.0; // Standard input height
 
   // Glass specific spacing
   static const double glassBorderWidth = 1.0;
@@ -97,13 +97,13 @@ class AppSpacing {
   static const double maxButtonWidth = 280.0;
 
   // List and grid spacing
-  static const double listItemSpacing = md;        // 12px
-  static const double gridItemSpacing = lg;        // 16px
-  static const double sectionSpacing = xxl;        // 24px
-  static const double groupSpacing = xxxl;         // 32px
+  static const double listItemSpacing = md; // 12px
+  static const double gridItemSpacing = lg; // 16px
+  static const double sectionSpacing = xxl; // 24px
+  static const double groupSpacing = xxxl; // 32px
 
   // Form spacing
-  static const double formFieldSpacing = lg;       // 16px
-  static const double formGroupSpacing = xxl;      // 24px
-  static const double formButtonSpacing = xxxl;    // 32px
+  static const double formFieldSpacing = lg; // 16px
+  static const double formGroupSpacing = xxl; // 24px
+  static const double formButtonSpacing = xxxl; // 32px
 }

@@ -36,41 +36,45 @@ class OtpProvider extends ChangeNotifier {
     Duration initialCountdown = const Duration(seconds: 60),
     AnalyticsService? analyticsService,
     AuthService? authService,
-  })  : _analyticsService = analyticsService ?? AnalyticsService.instance,
-        _authService = authService ?? AuthService.instance,
-        _methods = List<OtpMethod>.unmodifiable(
-          availableMethods ??
-              const [
-                OtpMethod(
-                  id: 'sms',
-                  label: 'SMS to ??45',
-                  description: 'We texted a code to your number ending in ??45.',
-                  type: 'sms',
-                ),
-                OtpMethod(
-                  id: 'push',
-                  label: 'Approve in app',
-                  description: 'Tap approve on the push notification we sent.',
-                  type: 'push',
-                ),
-                OtpMethod(
-                  id: 'email',
-                  label: 'Email to look@fitcheck.com',
-                  description: 'Check your inbox for a fresh code.',
-                  type: 'email',
-                ),
-              ],
-        ),
-        _activeMethod = initialMethod ??
-            const OtpMethod(
-              id: 'sms',
-              label: 'SMS to ??45',
-              description: 'We texted a code to your number ending in ??45.',
-              type: 'sms',
-            ),
-        _secondsRemaining = initialCountdown.inSeconds {
+  }) : _analyticsService = analyticsService ?? AnalyticsService.instance,
+       _authService = authService ?? AuthService.instance,
+       _methods = List<OtpMethod>.unmodifiable(
+         availableMethods ??
+             const [
+               OtpMethod(
+                 id: 'sms',
+                 label: 'SMS to ??45',
+                 description: 'We texted a code to your number ending in ??45.',
+                 type: 'sms',
+               ),
+               OtpMethod(
+                 id: 'push',
+                 label: 'Approve in app',
+                 description: 'Tap approve on the push notification we sent.',
+                 type: 'push',
+               ),
+               OtpMethod(
+                 id: 'email',
+                 label: 'Email to look@fitcheck.com',
+                 description: 'Check your inbox for a fresh code.',
+                 type: 'email',
+               ),
+             ],
+       ),
+       _activeMethod =
+           initialMethod ??
+           const OtpMethod(
+             id: 'sms',
+             label: 'SMS to ??45',
+             description: 'We texted a code to your number ending in ??45.',
+             type: 'sms',
+           ),
+       _secondsRemaining = initialCountdown.inSeconds {
     if (!_methods.any((method) => method.id == _activeMethod.id)) {
-      _methods = List<OtpMethod>.unmodifiable(<OtpMethod>[..._methods, _activeMethod]);
+      _methods = List<OtpMethod>.unmodifiable(<OtpMethod>[
+        ..._methods,
+        _activeMethod,
+      ]);
     }
 
     _analyticsService.logEvent(
@@ -109,8 +113,8 @@ class OtpProvider extends ChangeNotifier {
 
   String get code => _code;
   List<String> get digits => List<String>.generate(codeLength, (index) {
-        return index < _code.length ? _code[index] : '';
-      });
+    return index < _code.length ? _code[index] : '';
+  });
   List<OtpMethod> get methods => _methods;
   OtpMethod get activeMethod => _activeMethod;
   int get secondsRemaining => _secondsRemaining;
@@ -237,10 +241,7 @@ class OtpProvider extends ChangeNotifier {
 
     _analyticsService.logEvent(
       'otp_resend',
-      parameters: {
-        'method': _activeMethod.id,
-        'capsule_id': capsuleId,
-      },
+      parameters: {'method': _activeMethod.id, 'capsule_id': capsuleId},
     );
 
     _resendInFlight = false;

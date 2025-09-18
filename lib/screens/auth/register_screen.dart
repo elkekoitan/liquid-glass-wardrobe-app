@@ -4,7 +4,6 @@ import '../../providers/auth_provider.dart';
 import '../../utils/validators.dart';
 import '../../design_system/design_tokens.dart';
 
-
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -19,8 +18,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _confirmPasswordController = TextEditingController();
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
-
-
 
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
@@ -87,8 +84,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
         ),
         backgroundColor: isError
-            ? AppColors.error.withOpacity(0.9)
-            : AppColors.success.withOpacity(0.9),
+            ? AppColors.error.withValues(alpha: 0.9)
+            : AppColors.success.withValues(alpha: 0.9),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(DesignTokens.radiusM),
@@ -163,9 +160,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
         Text(
           'Join FitCheck and start your virtual try-on journey',
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.neutral600,
-          ),
+          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.neutral600),
           textAlign: TextAlign.center,
         ),
       ],
@@ -244,7 +239,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
               label: 'Password',
               hint: 'Enter your password',
               obscureText: _obscurePassword,
-              onToggle: () => setState(() => _obscurePassword = !_obscurePassword),
+              onToggle: () =>
+                  setState(() => _obscurePassword = !_obscurePassword),
               validator: Validators.password,
             ),
             const SizedBox(height: DesignTokens.spaceL),
@@ -255,7 +251,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
               label: 'Confirm Password',
               hint: 'Confirm your password',
               obscureText: _obscureConfirmPassword,
-              onToggle: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+              onToggle: () => setState(
+                () => _obscureConfirmPassword = !_obscureConfirmPassword,
+              ),
               validator: (value) {
                 if (value != _passwordController.text) {
                   return 'Passwords do not match';
@@ -270,7 +268,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
               children: [
                 Checkbox(
                   value: _acceptTerms,
-                  onChanged: (value) => setState(() => _acceptTerms = value ?? false),
+                  onChanged: (value) =>
+                      setState(() => _acceptTerms = value ?? false),
                   fillColor: WidgetStateProperty.resolveWith((states) {
                     if (states.contains(WidgetState.selected)) {
                       return AppColors.neutral900;
@@ -319,7 +318,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
             Consumer<AuthProvider>(
               builder: (context, authProvider, child) {
                 return ElevatedButton(
-                  onPressed: _isLoading || authProvider.isLoading ? null : _handleRegister,
+                  onPressed: _isLoading || authProvider.isLoading
+                      ? null
+                      : _handleRegister,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.neutral900,
                     foregroundColor: AppColors.neutralWhite,
@@ -334,7 +335,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           height: 24,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
                           ),
                         )
                       : Text(
@@ -455,9 +458,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       children: [
         Text(
           'Already have an account? ',
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.neutral600,
-          ),
+          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.neutral600),
         ),
         GestureDetector(
           onTap: () => Navigator.pushReplacementNamed(context, '/login'),

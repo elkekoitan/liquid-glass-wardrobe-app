@@ -298,7 +298,7 @@ class _LiquidButtonState extends State<LiquidButton>
         blurIntensity: 5.0,
         borderWidth: 1.0,
         borderColor: widget.isDisabled
-            ? Colors.grey.withOpacity(0.3)
+            ? Colors.grey.withValues(alpha: 0.3)
             : AppColors.glassBorderStrong,
         margin: EdgeInsets.zero,
         padding: EdgeInsets.zero,
@@ -373,9 +373,9 @@ class _LiquidButtonState extends State<LiquidButton>
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Colors.white.withOpacity(0.2 * _glowAnimation.value),
+                Colors.white.withValues(alpha: 0.2 * _glowAnimation.value),
                 Colors.transparent,
-                Colors.white.withOpacity(0.1 * _glowAnimation.value),
+                Colors.white.withValues(alpha: 0.1 * _glowAnimation.value),
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -390,7 +390,7 @@ class _LiquidButtonState extends State<LiquidButton>
     if (widget.isDisabled) {
       return [
         BoxShadow(
-          color: Colors.black.withOpacity(0.1),
+          color: Colors.black.withValues(alpha: 0.1),
           blurRadius: 4,
           offset: const Offset(0, 2),
         ),
@@ -403,18 +403,18 @@ class _LiquidButtonState extends State<LiquidButton>
     return [
       // Main shadow
       BoxShadow(
-        color: Colors.black.withOpacity(0.2),
+        color: Colors.black.withValues(alpha: 0.2),
         blurRadius: 8,
         offset: const Offset(0, 4),
       ),
       // Glow effect
       BoxShadow(
-        color: shadowColor.withOpacity(0.3 * glowIntensity),
+        color: shadowColor.withValues(alpha: 0.3 * glowIntensity),
         blurRadius: 15 * glowIntensity,
         offset: Offset.zero,
       ),
       BoxShadow(
-        color: shadowColor.withOpacity(0.1 * glowIntensity),
+        color: shadowColor.withValues(alpha: 0.1 * glowIntensity),
         blurRadius: 25 * glowIntensity,
         offset: Offset.zero,
       ),
@@ -458,7 +458,7 @@ class _LiquidButtonState extends State<LiquidButton>
         Shadow(
           offset: const Offset(0, 1),
           blurRadius: 2,
-          color: Colors.black.withOpacity(0.5),
+          color: Colors.black.withValues(alpha: 0.5),
         ),
       ],
     );

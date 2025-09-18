@@ -1,12 +1,12 @@
- import 'dart:io';
- import 'package:flutter/material.dart';
- import 'package:provider/provider.dart';
- import '../providers/fit_check_provider.dart';
- import '../utils/image_utils.dart';
- import 'package:image_picker/image_picker.dart' as picker;
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/fit_check_provider.dart';
+import '../utils/image_utils.dart';
+import 'package:image_picker/image_picker.dart' as picker;
 
- import '../design_system/design_tokens.dart';
- import '../design_system/components/modern_button.dart';
+import '../design_system/design_tokens.dart';
+import '../design_system/components/modern_button.dart';
 
 /// Start Screen - First screen for uploading model photo
 /// Features liquid glass UI with AI-powered model generation
@@ -22,7 +22,6 @@ class StartScreen extends StatefulWidget {
 }
 
 class _StartScreenState extends State<StartScreen> {
-  File? _userImageFile;
   String? _userImageUrl;
   bool _showComparison = false;
 
@@ -53,8 +52,9 @@ class _StartScreenState extends State<StartScreen> {
       // Convert to data URL for display
       final dataUrl = await ImageUtils.fileToDataUrl(croppedFile);
 
+      if (!mounted) return;
+
       setState(() {
-        _userImageFile = croppedFile;
         _userImageUrl = dataUrl;
         _showComparison = true;
       });
@@ -62,6 +62,8 @@ class _StartScreenState extends State<StartScreen> {
       // Process with AI
       final provider = context.read<FitCheckProvider>();
       await provider.processModelImage(croppedFile);
+
+      if (!mounted) return;
 
       // Show success and proceed button after processing
       if (provider.error == null) {
@@ -170,7 +172,7 @@ class _StartScreenState extends State<StartScreen> {
                   color: AppColors.errorSurface,
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: AppColors.error.withOpacity(0.2),
+                    color: AppColors.error.withValues(alpha: 0.2),
                     width: 2,
                   ),
                 ),
@@ -283,7 +285,6 @@ class _StartScreenState extends State<StartScreen> {
 
   void _resetImage() {
     setState(() {
-      _userImageFile = null;
       _userImageUrl = null;
       _showComparison = false;
     });
@@ -342,16 +343,16 @@ class _StartScreenState extends State<StartScreen> {
                       padding: const EdgeInsets.all(DesignTokens.spaceXXL),
                       decoration: BoxDecoration(
                         color: AppColors.neutral100,
-                        borderRadius: BorderRadius.circular(DesignTokens.radiusL),
+                        borderRadius: BorderRadius.circular(
+                          DesignTokens.radiusL,
+                        ),
                         boxShadow: AppShadows.sm,
                       ),
                       child: Column(
                         children: [
                           // AI Icon
                           Container(
-                            padding: const EdgeInsets.all(
-                              DesignTokens.spaceL,
-                            ),
+                            padding: const EdgeInsets.all(DesignTokens.spaceL),
                             decoration: BoxDecoration(
                               color: AppColors.primaryMain,
                               shape: BoxShape.circle,
@@ -389,11 +390,10 @@ class _StartScreenState extends State<StartScreen> {
                             ),
                             child: Text(
                               'See Yourself in Any Outfit',
-                              style: AppTextStyles.headlineMedium
-                                  .copyWith(
-                                    color: AppColors.neutralWhite,
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                              style: AppTextStyles.headlineMedium.copyWith(
+                                color: AppColors.neutralWhite,
+                                fontWeight: FontWeight.w600,
+                              ),
                               textAlign: TextAlign.center,
                             ),
                           ),
@@ -453,7 +453,9 @@ class _StartScreenState extends State<StartScreen> {
                       padding: const EdgeInsets.all(DesignTokens.spaceXL),
                       decoration: BoxDecoration(
                         color: AppColors.neutralWhite,
-                        borderRadius: BorderRadius.circular(DesignTokens.radiusL),
+                        borderRadius: BorderRadius.circular(
+                          DesignTokens.radiusL,
+                        ),
                         boxShadow: AppShadows.sm,
                       ),
                       child: Column(
@@ -470,16 +472,14 @@ class _StartScreenState extends State<StartScreen> {
                           const SizedBox(height: DesignTokens.spaceL),
 
                           Container(
-                            padding: const EdgeInsets.all(
-                              DesignTokens.spaceM,
-                            ),
+                            padding: const EdgeInsets.all(DesignTokens.spaceM),
                             decoration: BoxDecoration(
                               color: AppColors.infoSurface,
                               borderRadius: BorderRadius.circular(
                                 DesignTokens.radiusM,
                               ),
                               border: Border.all(
-                                color: AppColors.info.withOpacity(0.2),
+                                color: AppColors.info.withValues(alpha: 0.2),
                               ),
                             ),
                             child: Row(
@@ -588,7 +588,7 @@ class _StartScreenState extends State<StartScreen> {
                           ),
                           color: AppColors.neutral200,
                           border: Border.all(
-                            color: AppColors.primaryMain.withOpacity(0.2),
+                            color: AppColors.primaryMain.withValues(alpha: 0.2),
                             width: 2,
                           ),
                         ),
@@ -648,7 +648,7 @@ class _StartScreenState extends State<StartScreen> {
                           ),
                           color: AppColors.errorSurface,
                           border: Border.all(
-                            color: AppColors.error.withOpacity(0.3),
+                            color: AppColors.error.withValues(alpha: 0.3),
                             width: 2,
                           ),
                         ),
@@ -660,7 +660,7 @@ class _StartScreenState extends State<StartScreen> {
                                 DesignTokens.spaceL,
                               ),
                               decoration: BoxDecoration(
-                                color: AppColors.error.withOpacity(0.1),
+                                color: AppColors.error.withValues(alpha: 0.1),
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(
@@ -709,7 +709,7 @@ class _StartScreenState extends State<StartScreen> {
                           ),
                           color: AppColors.neutralWhite,
                           border: Border.all(
-                            color: AppColors.success.withOpacity(0.3),
+                            color: AppColors.success.withValues(alpha: 0.3),
                             width: 2,
                           ),
                           boxShadow: AppShadows.lg,
@@ -825,14 +825,10 @@ class _StartScreenState extends State<StartScreen> {
           Container(
             padding: const EdgeInsets.all(DesignTokens.spaceM),
             decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.1),
+              color: iconColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(DesignTokens.radiusM),
             ),
-            child: Icon(
-              icon,
-              color: iconColor,
-              size: 24,
-            ),
+            child: Icon(icon, color: iconColor, size: 24),
           ),
           const SizedBox(height: DesignTokens.spaceM),
           Text(

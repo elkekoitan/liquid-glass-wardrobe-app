@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -29,12 +28,12 @@ class _MainAppScreenState extends State<MainAppScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final geminiApiKey = dotenv.env['GEMINI_API_KEY'];
       if (geminiApiKey != null && geminiApiKey.isNotEmpty) {
-        context.read<FitCheckProvider>().initializeGeminiService(
-          geminiApiKey,
-        );
+        context.read<FitCheckProvider>().initializeGeminiService(geminiApiKey);
       } else {
         // Handle missing API key
-        print('Warning: GEMINI_API_KEY not found in environment variables');
+        debugPrint(
+          'Warning: GEMINI_API_KEY not found in environment variables',
+        );
       }
     });
   }
@@ -42,12 +41,6 @@ class _MainAppScreenState extends State<MainAppScreen> {
   void _navigateToCanvas() {
     setState(() {
       _currentScreen = AppScreen.canvas;
-    });
-  }
-
-  void _navigateToStart() {
-    setState(() {
-      _currentScreen = AppScreen.start;
     });
   }
 
@@ -131,7 +124,7 @@ class _MainAppScreenState extends State<MainAppScreen> {
                 end: Alignment.bottomCenter,
                 colors: [
                   Colors.transparent,
-                  AppColors.surfaceVariant.withOpacity(0.3),
+                  AppColors.surfaceVariant.withValues(alpha: 0.3),
                 ],
               ),
             ),

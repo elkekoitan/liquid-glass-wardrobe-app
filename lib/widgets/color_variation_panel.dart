@@ -63,7 +63,7 @@ class _ColorVariationPanelState extends State<ColorVariationPanel> {
     try {
       final provider = context.read<FitCheckProvider>();
       await provider.changeGarmentColor(widget.layerIndex, colorPrompt);
-      
+
       // Close panel on success
       if (provider.error == null) {
         widget.onClose?.call();
@@ -74,13 +74,6 @@ class _ColorVariationPanelState extends State<ColorVariationPanel> {
       setState(() {
         _isApplyingColor = false;
       });
-    }
-  }
-
-  void _applyCustomColor() {
-    final customColor = _customColorController.text.trim();
-    if (customColor.isNotEmpty) {
-      _applyColor(customColor);
     }
   }
 
@@ -126,10 +119,7 @@ class _ColorVariationPanelState extends State<ColorVariationPanel> {
                   ),
                   IconButton(
                     onPressed: _isApplyingColor ? null : widget.onClose,
-                    icon: Icon(
-                      Icons.close,
-                      color: AppColors.textSecondary,
-                    ),
+                    icon: Icon(Icons.close, color: AppColors.textSecondary),
                   ),
                 ],
               ),
@@ -141,10 +131,10 @@ class _ColorVariationPanelState extends State<ColorVariationPanel> {
                 Container(
                   padding: const EdgeInsets.all(AppSpacing.md),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: AppColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: AppColors.primary.withOpacity(0.3),
+                      color: AppColors.primary.withValues(alpha: 0.3),
                       width: 1,
                     ),
                   ),
@@ -163,7 +153,7 @@ class _ColorVariationPanelState extends State<ColorVariationPanel> {
                         child: Consumer<FitCheckProvider>(
                           builder: (context, provider, child) {
                             return Text(
-                              provider.loadingMessage.isNotEmpty 
+                              provider.loadingMessage.isNotEmpty
                                   ? provider.loadingMessage
                                   : 'Applying color change...',
                               style: AppTypography.bodyMedium.copyWith(
@@ -188,10 +178,10 @@ class _ColorVariationPanelState extends State<ColorVariationPanel> {
                       Container(
                         padding: const EdgeInsets.all(AppSpacing.sm),
                         decoration: BoxDecoration(
-                          color: AppColors.error.withOpacity(0.1),
+                          color: AppColors.error.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
-                            color: AppColors.error.withOpacity(0.3),
+                            color: AppColors.error.withValues(alpha: 0.3),
                             width: 1,
                           ),
                         ),
@@ -229,9 +219,9 @@ class _ColorVariationPanelState extends State<ColorVariationPanel> {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                
+
                 const SizedBox(height: AppSpacing.md),
-                
+
                 // Color grid
                 GridView.builder(
                   shrinkWrap: true,
@@ -245,21 +235,25 @@ class _ColorVariationPanelState extends State<ColorVariationPanel> {
                   itemCount: _colorOptions.length,
                   itemBuilder: (context, index) {
                     final colorOption = _colorOptions[index];
-                    final isSelected = _selectedPresetColor == colorOption.prompt;
-                    
+                    final isSelected =
+                        _selectedPresetColor == colorOption.prompt;
+
                     return _ColorOptionTile(
-                      colorOption: colorOption,
-                      isSelected: isSelected,
-                      onTap: () {
-                        setState(() {
-                          _selectedPresetColor = colorOption.prompt;
-                          _customColorController.clear();
-                        });
-                      },
-                    )
-                      .animate()
-                      .fadeIn(delay: (index * 50).ms)
-                      .scale(delay: (index * 50).ms, curve: Curves.elasticOut);
+                          colorOption: colorOption,
+                          isSelected: isSelected,
+                          onTap: () {
+                            setState(() {
+                              _selectedPresetColor = colorOption.prompt;
+                              _customColorController.clear();
+                            });
+                          },
+                        )
+                        .animate()
+                        .fadeIn(delay: (index * 50).ms)
+                        .scale(
+                          delay: (index * 50).ms,
+                          curve: Curves.elasticOut,
+                        );
                   },
                 ),
 
@@ -273,9 +267,9 @@ class _ColorVariationPanelState extends State<ColorVariationPanel> {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                
+
                 const SizedBox(height: AppSpacing.sm),
-                
+
                 TextField(
                   controller: _customColorController,
                   onChanged: (value) {
@@ -291,11 +285,11 @@ class _ColorVariationPanelState extends State<ColorVariationPanel> {
                       color: AppColors.textTertiary,
                     ),
                     filled: true,
-                    fillColor: Colors.white.withOpacity(0.7),
+                    fillColor: Colors.white.withValues(alpha: 0.7),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(
-                        color: AppColors.surfaceVariant.withOpacity(0.5),
+                        color: AppColors.surfaceVariant.withValues(alpha: 0.5),
                         width: 1,
                       ),
                     ),
@@ -325,18 +319,20 @@ class _ColorVariationPanelState extends State<ColorVariationPanel> {
                         onPressed: widget.onClose,
                       ),
                     ),
-                    
+
                     const SizedBox(width: AppSpacing.md),
-                    
+
                     Expanded(
                       flex: 2,
                       child: LiquidButton.primary(
                         text: 'Apply Color',
-                        onPressed: (_selectedPresetColor != null || 
-                                   _customColorController.text.trim().isNotEmpty)
+                        onPressed:
+                            (_selectedPresetColor != null ||
+                                _customColorController.text.trim().isNotEmpty)
                             ? () {
-                                final colorPrompt = _selectedPresetColor ?? 
-                                                  _customColorController.text.trim();
+                                final colorPrompt =
+                                    _selectedPresetColor ??
+                                    _customColorController.text.trim();
                                 _applyColor(colorPrompt);
                               }
                             : null,
@@ -372,22 +368,19 @@ class _ColorOptionTile extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected 
-                ? AppColors.primary 
-                : AppColors.surfaceVariant.withOpacity(0.5),
+            color: isSelected
+                ? AppColors.primary
+                : AppColors.surfaceVariant.withValues(alpha: 0.5),
             width: isSelected ? 3 : 1,
           ),
-          color: isSelected 
-              ? AppColors.primary.withOpacity(0.1)
-              : Colors.white.withOpacity(0.5),
+          color: isSelected
+              ? AppColors.primary.withValues(alpha: 0.1)
+              : Colors.white.withValues(alpha: 0.5),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              colorOption.emoji,
-              style: const TextStyle(fontSize: 24),
-            ),
+            Text(colorOption.emoji, style: const TextStyle(fontSize: 24)),
             const SizedBox(height: 4),
             Text(
               colorOption.name,
@@ -418,10 +411,7 @@ class ColorOption {
 class PoseSelectionPanel extends StatelessWidget {
   final VoidCallback? onClose;
 
-  const PoseSelectionPanel({
-    super.key,
-    this.onClose,
-  });
+  const PoseSelectionPanel({super.key, this.onClose});
 
   @override
   Widget build(BuildContext context) {
@@ -455,10 +445,7 @@ class PoseSelectionPanel extends StatelessWidget {
                       ),
                       IconButton(
                         onPressed: onClose,
-                        icon: Icon(
-                          Icons.close,
-                          color: AppColors.textSecondary,
-                        ),
+                        icon: Icon(Icons.close, color: AppColors.textSecondary),
                       ),
                     ],
                   ),
@@ -479,7 +466,7 @@ class PoseSelectionPanel extends StatelessWidget {
                     child: ListView.separated(
                       shrinkWrap: true,
                       itemCount: poseInstructions.length,
-                      separatorBuilder: (context, index) => 
+                      separatorBuilder: (context, index) =>
                           const SizedBox(height: AppSpacing.sm),
                       itemBuilder: (context, index) {
                         final pose = poseInstructions[index];
@@ -488,25 +475,25 @@ class PoseSelectionPanel extends StatelessWidget {
                         final isLoading = provider.isLoading;
 
                         return _PoseOptionTile(
-                          pose: pose,
-                          poseNumber: index + 1,
-                          isCurrentPose: isCurrentPose,
-                          isAvailable: isAvailable,
-                          isLoading: isLoading,
-                          onTap: (isLoading || isCurrentPose) 
-                              ? null 
-                              : () {
-                                  provider.changePose(index);
-                                  onClose?.call();
-                                },
-                        )
-                          .animate()
-                          .fadeIn(delay: (index * 100).ms)
-                          .slideX(
-                            begin: -0.3,
-                            delay: (index * 100).ms,
-                            curve: Curves.easeOut,
-                          );
+                              pose: pose,
+                              poseNumber: index + 1,
+                              isCurrentPose: isCurrentPose,
+                              isAvailable: isAvailable,
+                              isLoading: isLoading,
+                              onTap: (isLoading || isCurrentPose)
+                                  ? null
+                                  : () {
+                                      provider.changePose(index);
+                                      onClose?.call();
+                                    },
+                            )
+                            .animate()
+                            .fadeIn(delay: (index * 100).ms)
+                            .slideX(
+                              begin: -0.3,
+                              delay: (index * 100).ms,
+                              curve: Curves.easeOut,
+                            );
                       },
                     ),
                   ),
@@ -546,16 +533,16 @@ class _PoseOptionTile extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           color: isCurrentPose
-              ? AppColors.primary.withOpacity(0.2)
+              ? AppColors.primary.withValues(alpha: 0.2)
               : isAvailable
-                  ? AppColors.success.withOpacity(0.1)
-                  : Colors.white.withOpacity(0.5),
+              ? AppColors.success.withValues(alpha: 0.1)
+              : Colors.white.withValues(alpha: 0.5),
           border: Border.all(
             color: isCurrentPose
                 ? AppColors.primary
                 : isAvailable
-                    ? AppColors.success.withOpacity(0.3)
-                    : AppColors.surfaceVariant.withOpacity(0.5),
+                ? AppColors.success.withValues(alpha: 0.3)
+                : AppColors.surfaceVariant.withValues(alpha: 0.5),
             width: isCurrentPose ? 2 : 1,
           ),
         ),
@@ -569,16 +556,16 @@ class _PoseOptionTile extends StatelessWidget {
                 color: isCurrentPose
                     ? AppColors.primary
                     : isAvailable
-                        ? AppColors.success
-                        : AppColors.surfaceVariant,
+                    ? AppColors.success
+                    : AppColors.surfaceVariant,
                 shape: BoxShape.circle,
               ),
               child: Center(
                 child: Text(
                   '$poseNumber',
                   style: AppTypography.bodySmall.copyWith(
-                    color: (isCurrentPose || isAvailable) 
-                        ? Colors.white 
+                    color: (isCurrentPose || isAvailable)
+                        ? Colors.white
                         : AppColors.textPrimary,
                     fontWeight: FontWeight.bold,
                   ),
@@ -596,18 +583,16 @@ class _PoseOptionTile extends StatelessWidget {
                   color: isCurrentPose
                       ? AppColors.primary
                       : AppColors.textPrimary,
-                  fontWeight: isCurrentPose ? FontWeight.w600 : FontWeight.normal,
+                  fontWeight: isCurrentPose
+                      ? FontWeight.w600
+                      : FontWeight.normal,
                 ),
               ),
             ),
 
             // Status indicators
             if (isCurrentPose) ...[
-              Icon(
-                Icons.visibility,
-                color: AppColors.primary,
-                size: 20,
-              ),
+              Icon(Icons.visibility, color: AppColors.primary, size: 20),
             ] else if (isAvailable) ...[
               Icon(
                 Icons.check_circle_outline,

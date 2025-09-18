@@ -1,6 +1,5 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 /// Widget that applies liquid glass shader effect
 class LiquidGlassWidget extends StatefulWidget {

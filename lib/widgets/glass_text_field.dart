@@ -139,8 +139,8 @@ class _GlassTextFieldState extends State<GlassTextField>
     );
 
     _borderColorAnimation = ColorTween(
-      begin: Colors.white.withOpacity(0.2),
-      end: AppColors.primaryMain.withOpacity(0.8),
+      begin: Colors.white.withValues(alpha: 0.2),
+      end: AppColors.primaryMain.withValues(alpha: 0.8),
     ).animate(_animationController);
 
     _focusNode.addListener(_onFocusChange);
@@ -193,7 +193,7 @@ class _GlassTextFieldState extends State<GlassTextField>
             child: Text(
               widget.labelText!,
               style: AppTextStyles.labelMedium.copyWith(
-                color: Colors.white.withOpacity(0.9),
+                color: Colors.white.withValues(alpha: 0.9),
               ),
             ),
           ),
@@ -206,17 +206,17 @@ class _GlassTextFieldState extends State<GlassTextField>
                 borderRadius: BorderRadius.circular(DesignTokens.radiusM),
                 border: Border.all(
                   color: _errorText != null
-                      ? AppColors.errorMain.withOpacity(0.8)
+                      ? AppColors.errorMain.withValues(alpha: 0.8)
                       : _borderColorAnimation.value!,
                   width: _isFocused ? 2.0 : 1.0,
                 ),
                 gradient: LinearGradient(
                   colors: [
-                    Colors.white.withOpacity(
-                      0.1 + (_focusAnimation.value * 0.05),
+                    Colors.white.withValues(
+                      alpha: 0.1 + (_focusAnimation.value * 0.05),
                     ),
-                    Colors.white.withOpacity(
-                      0.05 + (_focusAnimation.value * 0.03),
+                    Colors.white.withValues(
+                      alpha: 0.05 + (_focusAnimation.value * 0.03),
                     ),
                   ],
                   begin: Alignment.topLeft,
@@ -225,7 +225,7 @@ class _GlassTextFieldState extends State<GlassTextField>
                 boxShadow: _isFocused
                     ? [
                         BoxShadow(
-                          color: AppColors.primaryMain.withOpacity(0.3),
+                          color: AppColors.primaryMain.withValues(alpha: 0.3),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -257,12 +257,12 @@ class _GlassTextFieldState extends State<GlassTextField>
                 decoration: InputDecoration(
                   hintText: widget.hintText,
                   hintStyle: AppTextStyles.bodyMedium.copyWith(
-                    color: Colors.white.withOpacity(0.6),
+                    color: Colors.white.withValues(alpha: 0.6),
                   ),
                   prefixIcon: widget.prefixIcon != null
                       ? Icon(
                           widget.prefixIcon,
-                          color: Colors.white.withOpacity(0.7),
+                          color: Colors.white.withValues(alpha: 0.7),
                           size: 20,
                         )
                       : null,
@@ -387,7 +387,7 @@ class GlassSearchTextField extends StatelessWidget {
           ? IconButton(
               icon: Icon(
                 Icons.clear,
-                color: Colors.white.withOpacity(0.7),
+                color: Colors.white.withValues(alpha: 0.7),
                 size: 18,
               ),
               onPressed:

@@ -1,7 +1,6 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
 
@@ -20,18 +19,11 @@ class AuthResult {
   });
 
   factory AuthResult.success(UserModel? user) {
-    return AuthResult(
-      success: true,
-      user: user,
-    );
+    return AuthResult(success: true, user: user);
   }
 
   factory AuthResult.failure(String error, [String? errorCode]) {
-    return AuthResult(
-      success: false,
-      error: error,
-      errorCode: errorCode,
-    );
+    return AuthResult(success: false, error: error, errorCode: errorCode);
   }
 }
 
@@ -44,7 +36,8 @@ class AuthService {
 
   // Mock user storage
   UserModel? _currentUser;
-  final StreamController<UserModel?> _userController = StreamController<UserModel?>.broadcast();
+  final StreamController<UserModel?> _userController =
+      StreamController<UserModel?>.broadcast();
 
   // Mock user stream
   Stream<UserModel?> get userStream => _userController.stream;
@@ -121,10 +114,7 @@ class AuthService {
         createdAt: DateTime.now(),
         lastSignIn: DateTime.now(),
         isEmailVerified: true,
-        profile: UserProfile(
-          firstName: firstName,
-          lastName: lastName,
-        ),
+        profile: UserProfile(firstName: firstName, lastName: lastName),
         preferences: const UserPreferences(),
         socialData: const UserSocialData(),
         subscription: null,
@@ -140,9 +130,10 @@ class AuthService {
       _userController.add(_currentUser);
 
       return AuthResult.success(userModel);
-
     } catch (e) {
-      return AuthResult.failure('An unexpected error occurred: ${e.toString()}');
+      return AuthResult.failure(
+        'An unexpected error occurred: ${e.toString()}',
+      );
     }
   }
 
@@ -178,10 +169,7 @@ class AuthService {
         createdAt: DateTime.now().subtract(const Duration(days: 30)),
         lastSignIn: DateTime.now(),
         isEmailVerified: true,
-        profile: UserProfile(
-          firstName: null,
-          lastName: null,
-        ),
+        profile: UserProfile(firstName: null, lastName: null),
         preferences: const UserPreferences(),
         socialData: const UserSocialData(),
         subscription: null,
@@ -195,7 +183,6 @@ class AuthService {
       _userController.add(_currentUser);
 
       return AuthResult.success(userModel);
-
     } catch (e) {
       return AuthResult.failure('Failed to sign in: ${e.toString()}');
     }
@@ -244,7 +231,9 @@ class AuthService {
       await Future.delayed(const Duration(seconds: 1));
       return AuthResult.success(null);
     } catch (e) {
-      return AuthResult.failure('Failed to send verification email: ${e.toString()}');
+      return AuthResult.failure(
+        'Failed to send verification email: ${e.toString()}',
+      );
     }
   }
 
@@ -278,10 +267,12 @@ class AuthService {
         return AuthResult.failure('No user logged in');
       }
 
-      final updatedProfile = profile ?? _currentUser!.profile?.copyWith(
-        firstName: firstName,
-        lastName: lastName,
-      );
+      final updatedProfile =
+          profile ??
+          _currentUser!.profile?.copyWith(
+            firstName: firstName,
+            lastName: lastName,
+          );
 
       final updatedUser = _currentUser!.copyWith(
         displayName: displayName,
@@ -359,6 +350,7 @@ class AuthService {
       return AuthResult.failure('Failed to verify code: ${e.toString()}');
     }
   }
+
   /// Sign in with Google (Mock)
   Future<AuthResult> signInWithGoogle() async {
     try {
@@ -375,10 +367,7 @@ class AuthService {
         createdAt: DateTime.now(),
         lastSignIn: DateTime.now(),
         isEmailVerified: true,
-        profile: UserProfile(
-          firstName: 'Google',
-          lastName: 'User',
-        ),
+        profile: UserProfile(firstName: 'Google', lastName: 'User'),
         preferences: const UserPreferences(),
         socialData: const UserSocialData(),
         subscription: null,
@@ -393,9 +382,10 @@ class AuthService {
       _userController.add(_currentUser);
 
       return AuthResult.success(userModel);
-
     } catch (e) {
-      return AuthResult.failure('Failed to sign in with Google: ${e.toString()}');
+      return AuthResult.failure(
+        'Failed to sign in with Google: ${e.toString()}',
+      );
     }
   }
 
@@ -404,5 +394,3 @@ class AuthService {
     _userController.close();
   }
 }
-
-

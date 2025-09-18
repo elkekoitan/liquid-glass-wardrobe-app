@@ -64,6 +64,8 @@ class _WardrobePanelState extends State<WardrobePanel> {
         url: await ImageUtils.fileToDataUrl(pickedFile),
       );
 
+      if (!mounted) return;
+
       // Add to provider's wardrobe
       final provider = context.read<FitCheckProvider>();
       provider.addWardrobeItem(customGarmentInfo);
@@ -91,6 +93,7 @@ class _WardrobePanelState extends State<WardrobePanel> {
           item.url,
           fileName: item.name,
         );
+        if (!mounted) return;
         widget.onGarmentSelect?.call(file, item);
       } else {
         // For default wardrobe items with URLs, we'd need to download
@@ -181,6 +184,8 @@ class _WardrobePanelState extends State<WardrobePanel> {
         url: await ImageUtils.fileToDataUrl(pickedFile),
       );
 
+      if (!mounted) return;
+
       final provider = context.read<FitCheckProvider>();
       provider.addWardrobeItem(customGarmentInfo);
       widget.onGarmentSelect?.call(pickedFile, customGarmentInfo);
@@ -231,10 +236,12 @@ class _WardrobePanelState extends State<WardrobePanel> {
                 Container(
                       height: 200,
                       decoration: BoxDecoration(
-                        color: AppColors.surfaceVariant.withOpacity(0.3),
+                        color: AppColors.surfaceVariant.withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: AppColors.surfaceVariant.withOpacity(0.5),
+                          color: AppColors.surfaceVariant.withValues(
+                            alpha: 0.5,
+                          ),
                           style: BorderStyle.solid,
                           width: 2,
                         ),
@@ -336,9 +343,11 @@ class _WardrobePanelState extends State<WardrobePanel> {
                 Container(
                   padding: const EdgeInsets.all(AppSpacing.sm),
                   decoration: BoxDecoration(
-                    color: AppColors.error.withOpacity(0.1),
+                    color: AppColors.error.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColors.error.withOpacity(0.3)),
+                    border: Border.all(
+                      color: AppColors.error.withValues(alpha: 0.3),
+                    ),
                   ),
                   child: Row(
                     children: [
@@ -421,7 +430,9 @@ class _WardrobeItemTile extends StatelessWidget {
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
                           return Container(
-                            color: AppColors.surfaceVariant.withOpacity(0.3),
+                            color: AppColors.surfaceVariant.withValues(
+                              alpha: 0.3,
+                            ),
                             child: Icon(
                               Icons.broken_image,
                               color: AppColors.textTertiary,
@@ -437,7 +448,10 @@ class _WardrobeItemTile extends StatelessWidget {
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [Colors.transparent, Colors.black.withOpacity(0.7)],
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withValues(alpha: 0.7),
+                    ],
                   ),
                 ),
               ),
@@ -462,7 +476,7 @@ class _WardrobeItemTile extends StatelessWidget {
               if (isActive)
                 Positioned.fill(
                   child: Container(
-                    color: AppColors.success.withOpacity(0.8),
+                    color: AppColors.success.withValues(alpha: 0.8),
                     child: const Icon(
                       Icons.check_circle,
                       color: Colors.white,
@@ -475,7 +489,7 @@ class _WardrobeItemTile extends StatelessWidget {
               if (isLoading)
                 Positioned.fill(
                   child: Container(
-                    color: Colors.black.withOpacity(0.5),
+                    color: Colors.black.withValues(alpha: 0.5),
                     child: const Center(
                       child: CircularProgressIndicator(color: Colors.white),
                     ),
@@ -503,11 +517,11 @@ class _UploadButton extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: AppColors.primary.withOpacity(0.5),
+            color: AppColors.primary.withValues(alpha: 0.5),
             width: 2,
             style: BorderStyle.solid,
           ),
-          color: AppColors.primary.withOpacity(0.1),
+          color: AppColors.primary.withValues(alpha: 0.1),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

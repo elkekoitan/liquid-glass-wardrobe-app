@@ -99,7 +99,7 @@ class _HomeScreenState extends State<HomeScreen>
         ? AppColors.neutral300
         : AppColors.neutral600;
     final Color avatarBackground = highContrast
-        ? Colors.white.withOpacity(0.12)
+        ? Colors.white.withValues(alpha: 0.12)
         : AppColors.neutral200;
     final Color iconColor = highContrast
         ? AppColors.neutralWhite
@@ -151,7 +151,7 @@ class _HomeScreenState extends State<HomeScreen>
         ? AppColors.neutral300
         : AppColors.neutral700;
     final BoxBorder? border = highContrast
-        ? Border.all(color: Colors.white.withOpacity(0.08))
+        ? Border.all(color: Colors.white.withValues(alpha: 0.08))
         : null;
     final List<BoxShadow> shadows = highContrast
         ? const <BoxShadow>[]
@@ -286,7 +286,7 @@ class _HomeScreenState extends State<HomeScreen>
         ? AppColors.neutral300
         : AppColors.neutral600;
     final BoxBorder? border = highContrast
-        ? Border.all(color: Colors.white.withOpacity(0.08))
+        ? Border.all(color: Colors.white.withValues(alpha: 0.08))
         : null;
     final List<BoxShadow> shadows = highContrast
         ? const <BoxShadow>[]
@@ -333,18 +333,18 @@ class _HomeScreenState extends State<HomeScreen>
         ? AppColors.neutral200
         : AppColors.neutral700;
     final Color chipBackground = highContrast
-        ? Colors.white.withOpacity(0.1)
+        ? Colors.white.withValues(alpha: 0.1)
         : AppColors.neutral200;
     final Color chipText = highContrast
         ? AppColors.neutralWhite
         : AppColors.neutral700;
     final Color glassBorderColor = highContrast
-        ? Colors.white.withOpacity(0.16)
-        : Colors.white.withOpacity(0.18);
+        ? Colors.white.withValues(alpha: 0.16)
+        : Colors.white.withValues(alpha: 0.18);
     final List<Color>? glassGradient = highContrast
         ? [
-            AppColors.neutral900.withOpacity(0.95),
-            AppColors.neutral800.withOpacity(0.9),
+            AppColors.neutral900.withValues(alpha: 0.95),
+            AppColors.neutral800.withValues(alpha: 0.9),
           ]
         : null;
 
@@ -542,7 +542,7 @@ class _HomeScreenState extends State<HomeScreen>
         ? AppColors.neutral900
         : AppColors.neutralWhite;
     final BoxBorder? border = highContrast
-        ? Border.all(color: Colors.white.withOpacity(0.08))
+        ? Border.all(color: Colors.white.withValues(alpha: 0.08))
         : null;
     final List<BoxShadow> shadows = highContrast
         ? const <BoxShadow>[]
@@ -601,7 +601,7 @@ class _HomeScreenState extends State<HomeScreen>
       (prefs) => prefs.highContrast,
     );
     final Color tileColor = highContrast
-        ? Colors.white.withOpacity(0.1)
+        ? Colors.white.withValues(alpha: 0.1)
         : AppColors.neutral200;
     final Color iconColor = highContrast
         ? AppColors.neutralWhite

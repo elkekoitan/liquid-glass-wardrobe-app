@@ -13,16 +13,12 @@ import '../widgets/liquid_button.dart';
 class OutfitStack extends StatelessWidget {
   final Function(int layerIndex)? onInitiateColorChange;
 
-  const OutfitStack({
-    super.key,
-    this.onInitiateColorChange,
-  });
+  const OutfitStack({super.key, this.onInitiateColorChange});
 
   @override
   Widget build(BuildContext context) {
     return Consumer<FitCheckProvider>(
       builder: (context, provider, child) {
-        final outfitHistory = provider.outfitHistory;
         final currentIndex = provider.currentOutfitIndex;
         final activeHistory = provider.activeOutfitLayers;
 
@@ -45,19 +41,27 @@ class OutfitStack extends StatelessWidget {
                     children: [
                       // Undo button
                       IconButton(
-                        onPressed: provider.canUndo ? provider.undoLastGarment : null,
+                        onPressed: provider.canUndo
+                            ? provider.undoLastGarment
+                            : null,
                         icon: Icon(
                           Icons.undo,
-                          color: provider.canUndo ? AppColors.primary : AppColors.textTertiary,
+                          color: provider.canUndo
+                              ? AppColors.primary
+                              : AppColors.textTertiary,
                         ),
                         tooltip: 'Undo last garment',
                       ),
                       // Redo button
                       IconButton(
-                        onPressed: provider.canRedo ? provider.redoLastGarment : null,
+                        onPressed: provider.canRedo
+                            ? provider.redoLastGarment
+                            : null,
                         icon: Icon(
                           Icons.redo,
-                          color: provider.canRedo ? AppColors.primary : AppColors.textTertiary,
+                          color: provider.canRedo
+                              ? AppColors.primary
+                              : AppColors.textTertiary,
                         ),
                         tooltip: 'Redo garment',
                       ),
@@ -65,7 +69,7 @@ class OutfitStack extends StatelessWidget {
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: AppSpacing.md),
 
               // Outfit layers list
@@ -74,10 +78,10 @@ class OutfitStack extends StatelessWidget {
                 Container(
                   height: 120,
                   decoration: BoxDecoration(
-                    color: AppColors.surfaceVariant.withOpacity(0.3),
+                    color: AppColors.surfaceVariant.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: AppColors.surfaceVariant.withOpacity(0.5),
+                      color: AppColors.surfaceVariant.withValues(alpha: 0.5),
                       style: BorderStyle.solid,
                       width: 1,
                     ),
@@ -108,30 +112,35 @@ class OutfitStack extends StatelessWidget {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: activeHistory.length,
-                  separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.sm),
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: AppSpacing.sm),
                   itemBuilder: (context, index) {
                     final layer = activeHistory[index];
-                    final isTopLayer = index > 0 && index == activeHistory.length - 1;
+                    final isTopLayer =
+                        index > 0 && index == activeHistory.length - 1;
                     final isCurrentLayer = index == currentIndex;
 
                     return _OutfitLayerTile(
-                      layer: layer,
-                      layerNumber: index + 1,
-                      isTopLayer: isTopLayer,
-                      isCurrentLayer: isCurrentLayer,
-                      onRemove: isTopLayer ? provider.undoLastGarment : null,
-                      onColorChange: (isTopLayer && onInitiateColorChange != null) 
-                          ? () => onInitiateColorChange!(index)
-                          : null,
-                      onTap: () => provider.jumpToLayer(index),
-                    )
-                      .animate()
-                      .fadeIn(delay: (index * 100).ms)
-                      .slideX(
-                        begin: -0.2,
-                        delay: (index * 100).ms,
-                        curve: Curves.easeOut,
-                      );
+                          layer: layer,
+                          layerNumber: index + 1,
+                          isTopLayer: isTopLayer,
+                          isCurrentLayer: isCurrentLayer,
+                          onRemove: isTopLayer
+                              ? provider.undoLastGarment
+                              : null,
+                          onColorChange:
+                              (isTopLayer && onInitiateColorChange != null)
+                              ? () => onInitiateColorChange!(index)
+                              : null,
+                          onTap: () => provider.jumpToLayer(index),
+                        )
+                        .animate()
+                        .fadeIn(delay: (index * 100).ms)
+                        .slideX(
+                          begin: -0.2,
+                          delay: (index * 100).ms,
+                          curve: Curves.easeOut,
+                        );
                   },
                 ),
               ],
@@ -142,10 +151,10 @@ class OutfitStack extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(AppSpacing.sm),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: AppColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: AppColors.primary.withOpacity(0.2),
+                      color: AppColors.primary.withValues(alpha: 0.2),
                       width: 1,
                     ),
                   ),
@@ -167,34 +176,32 @@ class OutfitStack extends StatelessWidget {
                       ),
                     ],
                   ),
-                )
-                  .animate()
-                  .fadeIn(delay: 500.ms),
+                ).animate().fadeIn(delay: 500.ms),
               ],
 
               // Stats
               if (activeHistory.length > 1) ...[
                 const SizedBox(height: AppSpacing.md),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.sm,
-                    vertical: AppSpacing.xs,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.success.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Text(
-                    '${activeHistory.length - 1} garment${activeHistory.length > 2 ? 's' : ''} applied',
-                    style: AppTypography.bodySmall.copyWith(
-                      color: AppColors.success,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                )
-                  .animate()
-                  .fadeIn(delay: 300.ms)
-                  .scale(delay: 300.ms, curve: Curves.elasticOut),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.sm,
+                        vertical: AppSpacing.xs,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.success.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Text(
+                        '${activeHistory.length - 1} garment${activeHistory.length > 2 ? 's' : ''} applied',
+                        style: AppTypography.bodySmall.copyWith(
+                          color: AppColors.success,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    )
+                    .animate()
+                    .fadeIn(delay: 300.ms)
+                    .scale(delay: 300.ms, curve: Curves.elasticOut),
               ],
             ],
           ),
@@ -231,13 +238,13 @@ class _OutfitLayerTile extends StatelessWidget {
         padding: const EdgeInsets.all(AppSpacing.sm),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          color: isCurrentLayer 
-              ? AppColors.primary.withOpacity(0.1)
-              : Colors.white.withOpacity(0.3),
+          color: isCurrentLayer
+              ? AppColors.primary.withValues(alpha: 0.1)
+              : Colors.white.withValues(alpha: 0.3),
           border: Border.all(
-            color: isCurrentLayer 
+            color: isCurrentLayer
                 ? AppColors.primary
-                : AppColors.surfaceVariant.withOpacity(0.5),
+                : AppColors.surfaceVariant.withValues(alpha: 0.5),
             width: isCurrentLayer ? 2 : 1,
           ),
         ),
@@ -248,22 +255,26 @@ class _OutfitLayerTile extends StatelessWidget {
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                color: isCurrentLayer ? AppColors.primary : AppColors.surfaceVariant,
+                color: isCurrentLayer
+                    ? AppColors.primary
+                    : AppColors.surfaceVariant,
                 shape: BoxShape.circle,
               ),
               child: Center(
                 child: Text(
                   '$layerNumber',
                   style: AppTypography.bodySmall.copyWith(
-                    color: isCurrentLayer ? Colors.white : AppColors.textPrimary,
+                    color: isCurrentLayer
+                        ? Colors.white
+                        : AppColors.textPrimary,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
             ),
-            
+
             const SizedBox(width: AppSpacing.sm),
-            
+
             // Garment thumbnail (if available)
             if (layer.garment != null && layer.garment!.url.isNotEmpty) ...[
               Container(
@@ -271,7 +282,7 @@ class _OutfitLayerTile extends StatelessWidget {
                 height: 48,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
-                  color: AppColors.surfaceVariant.withOpacity(0.3),
+                  color: AppColors.surfaceVariant.withValues(alpha: 0.3),
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
@@ -302,7 +313,7 @@ class _OutfitLayerTile extends StatelessWidget {
               ),
               const SizedBox(width: AppSpacing.sm),
             ],
-            
+
             // Layer info
             Expanded(
               child: Column(
@@ -329,7 +340,7 @@ class _OutfitLayerTile extends StatelessWidget {
                 ],
               ),
             ),
-            
+
             // Action buttons (only for top layer)
             if (isTopLayer) ...[
               const SizedBox(width: AppSpacing.sm),
@@ -349,7 +360,7 @@ class _OutfitLayerTile extends StatelessWidget {
                       padding: const EdgeInsets.all(8),
                       constraints: const BoxConstraints(),
                     ),
-                  
+
                   // Remove button
                   if (onRemove != null)
                     IconButton(
@@ -366,15 +377,11 @@ class _OutfitLayerTile extends StatelessWidget {
                 ],
               ),
             ],
-            
+
             // Current layer indicator
             if (isCurrentLayer && !isTopLayer) ...[
               const SizedBox(width: AppSpacing.sm),
-              Icon(
-                Icons.visibility,
-                color: AppColors.primary,
-                size: 20,
-              ),
+              Icon(Icons.visibility, color: AppColors.primary, size: 20),
             ],
           ],
         ),
@@ -391,6 +398,7 @@ class OutfitHistoryControls extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<FitCheckProvider>(
       builder: (context, provider, child) {
+        final outfitHistory = provider.outfitHistory;
         return GlassContainer.strong(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -402,9 +410,9 @@ class OutfitHistoryControls extends StatelessWidget {
                   onPressed: provider.canUndo ? provider.undoLastGarment : null,
                 ),
               ),
-              
+
               const SizedBox(width: AppSpacing.sm),
-              
+
               // Layer info
               Expanded(
                 flex: 2,
@@ -413,15 +421,15 @@ class OutfitHistoryControls extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'Layer ${provider.currentOutfitIndex + 1} of ${provider.outfitHistory.length}',
+                        'Layer ${provider.currentOutfitIndex + 1} of ${outfitHistory.length}',
                         style: AppTypography.bodyMedium.copyWith(
                           color: AppColors.textPrimary,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      if (provider.outfitHistory.length > 1)
+                      if (outfitHistory.length > 1)
                         Text(
-                          '${provider.outfitHistory.length - 1} garment${provider.outfitHistory.length > 2 ? 's' : ''} applied',
+                          '${outfitHistory.length - 1} garment${outfitHistory.length > 2 ? 's' : ''} applied',
                           style: AppTypography.bodySmall.copyWith(
                             color: AppColors.textSecondary,
                           ),
@@ -430,9 +438,9 @@ class OutfitHistoryControls extends StatelessWidget {
                   ),
                 ),
               ),
-              
+
               const SizedBox(width: AppSpacing.sm),
-              
+
               // Redo button
               Expanded(
                 child: LiquidButton.secondary(

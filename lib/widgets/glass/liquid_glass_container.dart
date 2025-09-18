@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'dart:ui';
 import '../../design_system/design_tokens.dart';
 
@@ -45,7 +44,9 @@ class LiquidGlassContainer extends StatefulWidget {
     this.shadowOffset = const Offset(0, 2), // Reduced offset
     this.onTap,
     this.isInteractive = true,
-    this.animationDuration = const Duration(milliseconds: 150), // Faster, less distracting
+    this.animationDuration = const Duration(
+      milliseconds: 150,
+    ), // Faster, less distracting
     this.animationCurve = Curves.easeInOut,
     this.glassIntensity = 0.5, // Reduced intensity
     this.enableRipple = false, // Disabled for minimalism
@@ -60,7 +61,6 @@ class LiquidGlassContainer extends StatefulWidget {
 class _LiquidGlassContainerState extends State<LiquidGlassContainer>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
-  bool _isPressed = false;
 
   @override
   void initState() {
@@ -79,27 +79,18 @@ class _LiquidGlassContainerState extends State<LiquidGlassContainer>
 
   void _handleTapDown(TapDownDetails details) {
     if (widget.isInteractive) {
-      setState(() {
-        _isPressed = true;
-      });
       _animationController.forward();
     }
   }
 
   void _handleTapUp(TapUpDetails details) {
     if (widget.isInteractive) {
-      setState(() {
-        _isPressed = false;
-      });
       _animationController.reverse();
     }
   }
 
   void _handleTapCancel() {
     if (widget.isInteractive) {
-      setState(() {
-        _isPressed = false;
-      });
       _animationController.reverse();
     }
   }
@@ -116,8 +107,8 @@ class _LiquidGlassContainerState extends State<LiquidGlassContainer>
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Colors.white.withOpacity(widget.opacity),
-            Colors.white.withOpacity(widget.opacity * 0.5),
+            Colors.white.withValues(alpha: widget.opacity),
+            Colors.white.withValues(alpha: widget.opacity * 0.5),
           ],
         );
 
@@ -147,8 +138,8 @@ class _LiquidGlassContainerState extends State<LiquidGlassContainer>
                         as BorderRadius,
                 boxShadow: [
                   BoxShadow(
-                    color: effectiveShadowColor.withOpacity(
-                      widget.shadowOpacity,
+                    color: effectiveShadowColor.withValues(
+                      alpha: widget.shadowOpacity,
                     ),
                     offset: widget.shadowOffset,
                     blurRadius: blur,
@@ -179,9 +170,7 @@ class _LiquidGlassContainerState extends State<LiquidGlassContainer>
                       child: InkWell(
                         borderRadius:
                             (widget.borderRadius ??
-                                    BorderRadius.circular(
-                                      DesignTokens.radiusL,
-                                    ))
+                                    BorderRadius.circular(DesignTokens.radiusL))
                                 as BorderRadius?,
                         splashColor: Colors.transparent,
                         highlightColor: Colors.transparent,
@@ -199,41 +188,6 @@ class _LiquidGlassContainerState extends State<LiquidGlassContainer>
           ),
         );
       },
-    );
-  }
-
-  Widget _buildShimmerEffect() {
-    return Stack(
-      children: [
-        if (widget.child != null) widget.child!,
-        Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  borderRadius:
-                      (widget.borderRadius ??
-                              BorderRadius.circular(DesignTokens.radiusL))
-                          as BorderRadius,
-                  gradient: LinearGradient(
-                    begin: const Alignment(-1.0, -0.3),
-                    end: const Alignment(1.0, 0.3),
-                    stops: const [0.0, 0.5, 1.0],
-                    colors: [
-                      Colors.transparent,
-                      Colors.white.withOpacity(0.2),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-            )
-            .animate(onPlay: (controller) => controller.repeat())
-            .slideX(
-              duration: 1500.ms,
-              begin: -1,
-              end: 1,
-              curve: Curves.easeInOut,
-            ),
-      ],
     );
   }
 }
@@ -308,8 +262,8 @@ class GlassButton extends StatelessWidget {
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
         colors: [
-          effectiveColor.withOpacity(0.8),
-          effectiveColor.withOpacity(0.6),
+          effectiveColor.withValues(alpha: 0.8),
+          effectiveColor.withValues(alpha: 0.6),
         ],
       ),
       child: Center(

@@ -1,5 +1,5 @@
-name: fit_check_app
-description: "AI-powered virtual try-on mobile app with liquid glass UI"
+name: fitcheck_app
+description: "FitCheck - AI-powered virtual try-on fashion app with liquid glass UI"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev

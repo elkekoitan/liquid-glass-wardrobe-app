@@ -228,7 +228,7 @@ class GlassContainer extends StatelessWidget {
     if (gradientColors != null && gradientColors!.isNotEmpty) {
       return LinearGradient(
         colors: gradientColors!
-            .map((color) => color.withOpacity(opacity))
+            .map((color) => color.withValues(alpha: opacity))
             .toList(),
         begin: gradientBegin,
         end: gradientEnd,
@@ -238,8 +238,8 @@ class GlassContainer extends StatelessWidget {
     // Default glass gradient
     return LinearGradient(
       colors: [
-        AppColors.primaryGlass.withOpacity(opacity),
-        AppColors.secondaryGlass.withOpacity(opacity * 0.7),
+        AppColors.primaryGlass.withValues(alpha: opacity),
+        AppColors.secondaryGlass.withValues(alpha: opacity * 0.7),
       ],
       begin: gradientBegin,
       end: gradientEnd,
@@ -341,7 +341,7 @@ class _InteractiveGlassContainerState extends State<InteractiveGlassContainer>
               borderRadius: widget.borderRadius,
               opacity: _opacityAnimation.value,
               borderColor: _isHovered
-                  ? AppColors.liquidBlue.withOpacity(0.5)
+                  ? AppColors.liquidBlue.withValues(alpha: 0.5)
                   : AppColors.glassBorder,
               onTap: widget.onTap,
               child: widget.child,

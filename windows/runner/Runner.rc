@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.liquidglass.app" "\0"
-            VALUE "FileDescription", "liquid_glass_otp_app" "\0"
+            VALUE "FileDescription", "FitCheck" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "liquid_glass_otp_app" "\0"
+            VALUE "InternalName", "FitCheck" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2025 com.liquidglass.app. All rights reserved." "\0"
-            VALUE "OriginalFilename", "liquid_glass_otp_app.exe" "\0"
-            VALUE "ProductName", "liquid_glass_otp_app" "\0"
+            VALUE "OriginalFilename", "FitCheck.exe" "\0"
+            VALUE "ProductName", "FitCheck" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

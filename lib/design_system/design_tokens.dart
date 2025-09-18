@@ -22,7 +22,8 @@ class DesignTokens {
   static const double spaceXXXL = 48.0; // Reduced from 64
 
   // Streamlined Typography Scale - Following Rams' unobtrusive principle
-  static const double fontSizeXS = 11.0; // Slightly increased for better readability
+  static const double fontSizeXS =
+      11.0; // Slightly increased for better readability
   static const double fontSizeS = 13.0;
   static const double fontSizeM = 15.0;
   static const double fontSizeL = 17.0;
@@ -41,7 +42,9 @@ class DesignTokens {
   static const double elevationXXL = 8.0; // Reduced
 
   // Refined Animation Durations - Smoother, less distracting
-  static const Duration durationFast = Duration(milliseconds: 200); // Slightly slower
+  static const Duration durationFast = Duration(
+    milliseconds: 200,
+  ); // Slightly slower
   static const Duration durationNormal = Duration(milliseconds: 350);
   static const Duration durationMedium = Duration(milliseconds: 450);
   static const Duration durationSlow = Duration(milliseconds: 550);
@@ -58,7 +61,9 @@ class AppColors {
   // Primary Colors - Reduced palette, following "less but better"
   static const Color primaryMain = Color(0xFF000000); // Pure black - timeless
   static const Color primaryLight = Color(0xFF333333); // Dark gray
-  static const Color primaryDark = Color(0xFF000000); // Same as main for consistency
+  static const Color primaryDark = Color(
+    0xFF000000,
+  ); // Same as main for consistency
   static const Color primarySurface = Color(0xFFFFFFFF); // Pure white
 
   // Secondary Colors - Single accent, unobtrusive
@@ -82,11 +87,15 @@ class AppColors {
   static const Color neutralWhite = Color(0xFFFFFFFF);
 
   // Semantic Colors - Minimal and functional
-  static const Color success = Color(0xFF4CAF50); // Green - clear and understandable
+  static const Color success = Color(
+    0xFF4CAF50,
+  ); // Green - clear and understandable
   static const Color successLight = Color(0xFF81C784);
   static const Color successSurface = Color(0xFFF1F8E9);
 
-  static const Color warning = Color(0xFFFF9800); // Orange - attention-grabbing but not aggressive
+  static const Color warning = Color(
+    0xFFFF9800,
+  ); // Orange - attention-grabbing but not aggressive
   static const Color warningLight = Color(0xFFFFB74D);
   static const Color warningSurface = Color(0xFFFFF8E1);
 
@@ -98,7 +107,7 @@ class AppColors {
   static const Color info = Color(0xFF2196F3); // Blue - informative
   static const Color infoLight = Color(0xFF64B5F6);
   static const Color infoSurface = Color(0xFFE3F2FD);
-  
+
   // Additional primary/secondary/tertiary colors for compatibility
   static const Color primary500 = primaryMain;
   static const Color secondary500 = secondaryMain;
@@ -152,13 +161,9 @@ class AppColors {
   static const LinearGradient glassGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [
-      Color(0x40FFFFFF),
-      Color(0x20FFFFFF),
-      Color(0x10FFFFFF),
-    ],
+    colors: [Color(0x40FFFFFF), Color(0x20FFFFFF), Color(0x10FFFFFF)],
   );
-  
+
   // Glassmorphism gradient alias
   static const LinearGradient glassmorphismGradient = glassGradient;
 
@@ -389,43 +394,23 @@ class AppShadows {
   ];
 
   static const List<BoxShadow> sm = [
-    BoxShadow(
-      color: Color(0x15000000),
-      offset: Offset(0, 2),
-      blurRadius: 4,
-    ),
+    BoxShadow(color: Color(0x15000000), offset: Offset(0, 2), blurRadius: 4),
   ];
 
   static const List<BoxShadow> md = [
-    BoxShadow(
-      color: Color(0x20000000),
-      offset: Offset(0, 4),
-      blurRadius: 8,
-    ),
+    BoxShadow(color: Color(0x20000000), offset: Offset(0, 4), blurRadius: 8),
   ];
 
   static const List<BoxShadow> lg = [
-    BoxShadow(
-      color: Color(0x25000000),
-      offset: Offset(0, 6),
-      blurRadius: 12,
-    ),
+    BoxShadow(color: Color(0x25000000), offset: Offset(0, 6), blurRadius: 12),
   ];
 
   static const List<BoxShadow> xl = [
-    BoxShadow(
-      color: Color(0x30000000),
-      offset: Offset(0, 8),
-      blurRadius: 16,
-    ),
+    BoxShadow(color: Color(0x30000000), offset: Offset(0, 8), blurRadius: 16),
   ];
 
   static const List<BoxShadow> xxl = [
-    BoxShadow(
-      color: Color(0x35000000),
-      offset: Offset(0, 12),
-      blurRadius: 24,
-    ),
+    BoxShadow(color: Color(0x35000000), offset: Offset(0, 12), blurRadius: 24),
   ];
 
   // Colored shadows for special effects

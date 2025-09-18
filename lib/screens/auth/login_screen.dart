@@ -1,13 +1,11 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../design_system/design_tokens.dart';
 
 import '../../services/auth_service.dart';
 import '../../core/router/app_router.dart';
 import '../../core/services/error_service.dart';
-
 
 import 'package:flutter/foundation.dart';
 
@@ -247,9 +245,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
         Text(
           'Sign in to continue your fashion journey',
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.neutral600,
-          ),
+          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.neutral600),
           textAlign: TextAlign.center,
         ),
       ],
@@ -396,10 +392,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 height: 20,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(4),
-                  border: Border.all(
-                    color: AppColors.neutral400,
-                    width: 1.5,
-                  ),
+                  border: Border.all(color: AppColors.neutral400, width: 1.5),
                   color: _rememberMe
                       ? AppColors.neutral700
                       : Colors.transparent,
@@ -472,12 +465,7 @@ class _LoginScreenState extends State<LoginScreen> {
         // Divider
         Row(
           children: [
-            Expanded(
-              child: Container(
-                height: 1,
-                color: AppColors.neutral300,
-              ),
-            ),
+            Expanded(child: Container(height: 1, color: AppColors.neutral300)),
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: DesignTokens.spaceM,
@@ -489,12 +477,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
             ),
-            Expanded(
-              child: Container(
-                height: 1,
-                color: AppColors.neutral300,
-              ),
-            ),
+            Expanded(child: Container(height: 1, color: AppColors.neutral300)),
           ],
         ),
 
@@ -561,9 +544,7 @@ class _LoginScreenState extends State<LoginScreen> {
       children: [
         Text(
           "Don't have an account? ",
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.neutral600,
-          ),
+          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.neutral600),
         ),
         GestureDetector(
           onTap: _navigateToRegister,
@@ -579,4 +560,3 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
-

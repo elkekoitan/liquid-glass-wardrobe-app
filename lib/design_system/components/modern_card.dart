@@ -43,7 +43,6 @@ class _ModernCardState extends State<ModernCard> with TickerProviderStateMixin {
   late Animation<double> _pressAnimation;
 
   bool _isHovered = false;
-  bool _isPressed = false;
 
   @override
   void initState() {
@@ -89,17 +88,14 @@ class _ModernCardState extends State<ModernCard> with TickerProviderStateMixin {
   }
 
   void _handleTapDown() {
-    setState(() => _isPressed = true);
     _pressController.forward();
   }
 
   void _handleTapUp() {
-    setState(() => _isPressed = false);
     _pressController.reverse();
   }
 
   void _handleTapCancel() {
-    setState(() => _isPressed = false);
     _pressController.reverse();
   }
 
@@ -146,7 +142,7 @@ class _ModernCardState extends State<ModernCard> with TickerProviderStateMixin {
             widget.borderRadius ?? DesignTokens.radiusL,
           ),
           border: Border.all(
-            color: AppColors.neutral200.withOpacity(0.3),
+            color: AppColors.neutral200.withValues(alpha: 0.3),
             width: 1,
           ),
           boxShadow: widget.hasShadow
@@ -245,7 +241,7 @@ class GlassCard extends StatelessWidget {
           borderRadius ?? DesignTokens.radiusL,
         ),
         border: Border.all(
-          color: AppColors.neutral200.withOpacity(0.2),
+          color: AppColors.neutral200.withValues(alpha: 0.2),
           width: 1,
         ),
         boxShadow: AppShadows.glassEffect,
@@ -325,8 +321,8 @@ class FeatureCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(DesignTokens.spaceM),
                   decoration: BoxDecoration(
-                    color: (iconColor ?? AppColors.primaryMain).withOpacity(
-                      0.1,
+                    color: (iconColor ?? AppColors.primaryMain).withValues(
+                      alpha: 0.1,
                     ),
                     borderRadius: BorderRadius.circular(DesignTokens.radiusM),
                   ),
@@ -352,7 +348,7 @@ class FeatureCard extends StatelessWidget {
                   subtitle!,
                   style: AppTextStyles.bodyMedium.copyWith(
                     color: isSelected
-                        ? AppColors.neutralWhite.withOpacity(0.8)
+                        ? AppColors.neutralWhite.withValues(alpha: 0.8)
                         : AppColors.neutral600,
                   ),
                 ),

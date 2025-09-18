@@ -21,9 +21,9 @@ class CanvasScreen extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              AppColors.surfaceVariant.withOpacity(0.7),
+              AppColors.surfaceVariant.withValues(alpha: 0.7),
               AppColors.surface,
-              AppColors.surfaceVariant.withOpacity(0.7),
+              AppColors.surfaceVariant.withValues(alpha: 0.7),
             ],
           ),
         ),
@@ -160,7 +160,7 @@ class _PlaceholderLoading extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.surfaceVariant.withOpacity(0.4),
+      color: AppColors.surfaceVariant.withValues(alpha: 0.4),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

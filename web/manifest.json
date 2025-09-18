@@ -1,6 +1,6 @@
 {
-    "name": "liquid_glass_otp_app",
-    "short_name": "liquid_glass_otp_app",
+    "name": "FitCheck",
+    "short_name": "FitCheck",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

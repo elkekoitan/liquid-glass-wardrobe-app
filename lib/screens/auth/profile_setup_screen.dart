@@ -16,8 +16,6 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   final _displayNameController = TextEditingController();
   final _bioController = TextEditingController();
 
-
-
   bool _isLoading = false;
   String? _selectedAvatar;
   String _selectedGender = 'not_specified';
@@ -52,8 +50,6 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     super.initState();
     _preloadUserData();
   }
-
-
 
   void _preloadUserData() {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -152,13 +148,11 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       SnackBar(
         content: Text(
           message,
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: Colors.white,
-          ),
+          style: AppTextStyles.bodyMedium.copyWith(color: Colors.white),
         ),
         backgroundColor: isError
-            ? AppColors.error.withOpacity(0.9)
-            : AppColors.success.withOpacity(0.9),
+            ? AppColors.error.withValues(alpha: 0.9)
+            : AppColors.success.withValues(alpha: 0.9),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(DesignTokens.spaceM),
@@ -184,7 +178,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   borderRadius: BorderRadius.circular(DesignTokens.radiusL),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: Colors.black.withValues(alpha: 0.1),
                       blurRadius: 10,
                       offset: Offset(0, 4),
                     ),
@@ -245,7 +239,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                               foregroundColor: Colors.white,
                               minimumSize: Size(double.infinity, 56),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(DesignTokens.radiusM),
+                                borderRadius: BorderRadius.circular(
+                                  DesignTokens.radiusM,
+                                ),
                               ),
                             ),
                             child: _isLoading || authProvider.isLoading
@@ -257,7 +253,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                                         height: 20,
                                         child: CircularProgressIndicator(
                                           strokeWidth: 2,
-                                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                Colors.white,
+                                              ),
                                         ),
                                       ),
                                       SizedBox(width: DesignTokens.spaceS),
@@ -278,10 +277,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
                       // Skip button
                       TextButton(
-                        onPressed: () => Navigator.pushReplacementNamed(
-                          context,
-                          '/home',
-                        ),
+                        onPressed: () =>
+                            Navigator.pushReplacementNamed(context, '/home'),
                         child: Text(
                           'Skip for now',
                           style: AppTextStyles.bodyMedium.copyWith(
@@ -328,7 +325,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   margin: EdgeInsets.only(right: DesignTokens.spaceS),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? AppColors.primaryMain.withOpacity(0.1)
+                        ? AppColors.primaryMain.withValues(alpha: 0.1)
                         : AppColors.neutral100,
                     borderRadius: BorderRadius.circular(30),
                     border: Border.all(
@@ -395,13 +392,11 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           ),
           decoration: BoxDecoration(
             color: isSelected
-                ? AppColors.primaryMain.withOpacity(0.1)
+                ? AppColors.primaryMain.withValues(alpha: 0.1)
                 : AppColors.neutral100,
             borderRadius: BorderRadius.circular(DesignTokens.radiusM),
             border: Border.all(
-              color: isSelected
-                  ? AppColors.primaryMain
-                  : AppColors.neutral300,
+              color: isSelected ? AppColors.primaryMain : AppColors.neutral300,
               width: 1,
             ),
           ),
@@ -439,10 +434,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             decoration: BoxDecoration(
               color: AppColors.neutralWhite,
               borderRadius: BorderRadius.circular(DesignTokens.radiusL),
-              border: Border.all(
-                color: AppColors.neutral300,
-                width: 1,
-              ),
+              border: Border.all(color: AppColors.neutral300, width: 1),
             ),
             child: Row(
               children: [
@@ -462,10 +454,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   ),
                 ),
                 const Spacer(),
-                Icon(
-                  Icons.arrow_drop_down,
-                  color: AppColors.neutral600,
-                ),
+                Icon(Icons.arrow_drop_down, color: AppColors.neutral600),
               ],
             ),
           ),

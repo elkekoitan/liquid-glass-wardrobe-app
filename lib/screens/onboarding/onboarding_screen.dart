@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
-import '../../design_system/design_tokens.dart';
+import 'package:provider/provider.dart';
+
 import '../../core/router/app_router.dart';
+import '../../design_system/design_tokens.dart';
+import '../../providers/personalization_provider.dart';
 
 class OnboardingScreen extends StatefulWidget {
-  final VoidCallback? onComplete;
-
   const OnboardingScreen({super.key, this.onComplete});
+
+  final VoidCallback? onComplete;
 
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
@@ -17,36 +20,36 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   final List<OnboardingData> _pages = [
     OnboardingData(
-      title: "Virtual\nFitting Room",
+      title: 'Virtual\nFitting Room',
       subtitle:
-          "Try on thousands of designer pieces with photorealistic precision. See exactly how clothes will fit and look before you buy.",
-      iconPath: "assets/images/onboarding/fitting_room.svg",
+          'Try on thousands of designer pieces with photorealistic precision. See exactly how clothes will fit and look before you buy.',
+      iconPath: 'assets/images/onboarding/fitting_room.svg',
       features: [
-        "Photorealistic virtual try-on technology",
-        "Accurate sizing and fit prediction",
-        "Works with any clothing item",
+        'Photorealistic virtual try-on technology',
+        'Accurate sizing and fit prediction',
+        'Works with any clothing item',
       ],
     ),
     OnboardingData(
-      title: "Curated\nCollections",
+      title: 'Curated\nCollections',
       subtitle:
-          "Discover handpicked styles from leading fashion brands. Get personalized recommendations based on your taste and body type.",
-      iconPath: "assets/images/onboarding/collections.svg",
+          'Discover handpicked styles from leading fashion brands. Get personalized recommendations based on your taste and body type.',
+      iconPath: 'assets/images/onboarding/collections.svg',
       features: [
-        "Designer collaborations",
-        "AI-powered style matching",
-        "Exclusive brand partnerships",
+        'Designer collaborations',
+        'AI-powered style matching',
+        'Exclusive brand partnerships',
       ],
     ),
     OnboardingData(
-      title: "Style\nCommunity",
+      title: 'Style\nCommunity',
       subtitle:
-          "Connect with fashion enthusiasts worldwide. Share your looks, get styling advice, and discover emerging trends.",
-      iconPath: "assets/images/onboarding/community.svg",
+          'Connect with fashion enthusiasts worldwide. Share your looks, get styling advice, and discover emerging trends.',
+      iconPath: 'assets/images/onboarding/community.svg',
       features: [
-        "Style sharing platform",
-        "Professional stylist advice",
-        "Trend forecasting insights",
+        'Style sharing platform',
+        'Professional stylist advice',
+        'Trend forecasting insights',
       ],
     ),
   ];
@@ -59,64 +62,75 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   IconData _getIconForPage(OnboardingData data) {
     if (data.title.contains('Virtual')) {
-      return Icons.view_in_ar_outlined; // Professional AR/VR icon
+      return Icons.view_in_ar_outlined;
     } else if (data.title.contains('Curated')) {
-      return Icons.auto_awesome_outlined; // Curation/AI icon
+      return Icons.auto_awesome_outlined;
     } else if (data.title.contains('Style')) {
-      return Icons.people_outline; // Community icon
+      return Icons.people_outline;
     }
-    return Icons.style_outlined; // Default fashion icon
+    return Icons.style_outlined;
   }
 
   void _nextPage() {
+    final reducedMotion = context.read<PersonalizationProvider>().reducedMotion;
+    final duration = reducedMotion
+        ? Duration.zero
+        : DesignTokens.durationNormal;
+    final curve = reducedMotion ? Curves.linear : DesignTokens.curveSmooth;
+
     if (_currentPage < _pages.length - 1) {
-      _pageController.nextPage(
-        duration: DesignTokens.durationNormal,
-        curve: DesignTokens.curveSmooth,
-      );
+      _pageController.nextPage(duration: duration, curve: curve);
     } else {
-      // Navigate to login screen
       Navigator.pushReplacementNamed(context, AppRouter.login);
       widget.onComplete?.call();
     }
   }
 
   void _previousPage() {
+    final reducedMotion = context.read<PersonalizationProvider>().reducedMotion;
+    final duration = reducedMotion
+        ? Duration.zero
+        : DesignTokens.durationNormal;
+    final curve = reducedMotion ? Curves.linear : DesignTokens.curveSmooth;
+
     if (_currentPage > 0) {
-      _pageController.previousPage(
-        duration: DesignTokens.durationNormal,
-        curve: DesignTokens.curveSmooth,
-      );
+      _pageController.previousPage(duration: duration, curve: curve);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final personalization = context.watch<PersonalizationProvider>();
+    final _OnboardingTheme theme = _OnboardingTheme(
+      highContrast: personalization.highContrast,
+    );
+    final bool reducedMotion = personalization.reducedMotion;
+
     return Scaffold(
       body: Container(
-        color: AppColors.neutralWhite,
+        decoration: theme.backgroundDecoration,
         child: SafeArea(
           child: Column(
             children: [
-              // Top Navigation
-              _buildTopNavigation(),
-
-              // Page View
+              _buildTopNavigation(theme),
               Expanded(
                 child: PageView.builder(
                   controller: _pageController,
-                  onPageChanged: (index) {
-                    setState(() => _currentPage = index);
-                  },
+                  physics: reducedMotion
+                      ? const ClampingScrollPhysics()
+                      : const BouncingScrollPhysics(),
+                  onPageChanged: (index) =>
+                      setState(() => _currentPage = index),
                   itemCount: _pages.length,
-                  itemBuilder: (context, index) {
-                    return _buildPage(_pages[index], index);
-                  },
+                  itemBuilder: (context, index) => _buildPage(
+                    theme: theme,
+                    data: _pages[index],
+                    index: index,
+                    reducedMotion: reducedMotion,
+                  ),
                 ),
               ),
-
-              // Bottom Navigation
-              _buildBottomNavigation(),
+              _buildBottomNavigation(theme),
             ],
           ),
         ),
@@ -124,13 +138,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  Widget _buildTopNavigation() {
+  Widget _buildTopNavigation(_OnboardingTheme theme) {
     return Padding(
       padding: const EdgeInsets.all(DesignTokens.spaceL),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Back button (only show if not first page)
           SizedBox(
             width: 40,
             child: _currentPage > 0
@@ -139,39 +152,38 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(DesignTokens.spaceS),
                       decoration: BoxDecoration(
-                        color: AppColors.neutral200,
+                        color: theme.iconSurface,
                         borderRadius: BorderRadius.circular(
                           DesignTokens.radiusRound,
                         ),
                       ),
                       child: Icon(
                         Icons.arrow_back_ios,
-                        color: AppColors.neutral700,
+                        color: theme.textPrimary,
                         size: 18,
                       ),
                     ),
                   )
                 : null,
           ),
-
-          // Page Indicator
           Row(
             children: List.generate(_pages.length, (index) {
-              return Container(
+              final bool isActive = _currentPage == index;
+              return AnimatedContainer(
+                duration: DesignTokens.durationFast,
+                curve: DesignTokens.curveSmooth,
                 margin: const EdgeInsets.symmetric(
                   horizontal: DesignTokens.spaceXS,
                 ),
-                width: _currentPage == index ? 24 : 8,
+                width: isActive ? 24 : 8,
                 height: 8,
                 decoration: BoxDecoration(
-                  color: _currentPage == index ? AppColors.neutral900 : AppColors.neutral300,
+                  color: isActive ? theme.accent : theme.indicatorInactive,
                   borderRadius: BorderRadius.circular(DesignTokens.radiusS),
                 ),
               );
             }),
           ),
-
-          // Skip button
           GestureDetector(
             onTap: () {
               Navigator.pushReplacementNamed(context, AppRouter.login);
@@ -183,13 +195,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 vertical: DesignTokens.spaceS,
               ),
               decoration: BoxDecoration(
-                color: AppColors.neutral200,
+                color: theme.iconSurface,
                 borderRadius: BorderRadius.circular(DesignTokens.radiusXXL),
               ),
               child: Text(
                 'Skip',
                 style: AppTextStyles.labelMedium.copyWith(
-                  color: AppColors.neutral700,
+                  color: theme.textSecondary,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -200,158 +212,160 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  Widget _buildPage(OnboardingData data, int index) {
-    final isVisible = _currentPage == index;
+  Widget _buildPage({
+    required _OnboardingTheme theme,
+    required OnboardingData data,
+    required int index,
+    required bool reducedMotion,
+  }) {
+    final bool isVisible = _currentPage == index;
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final screenHeight = MediaQuery.of(context).size.height;
-        final safeHeight =
-            screenHeight -
-            MediaQuery.of(context).padding.top -
-            MediaQuery.of(context).padding.bottom;
+        final media = MediaQuery.of(context);
+        final double screenHeight = media.size.height;
+        final double safeHeight =
+            screenHeight - media.padding.top - media.padding.bottom;
 
         return SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
+          physics: reducedMotion
+              ? const ClampingScrollPhysics()
+              : const BouncingScrollPhysics(),
           child: Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: DesignTokens.spaceL,
             ),
-            child: SizedBox(
-              height: safeHeight > 600 ? null : safeHeight * 0.8,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(height: DesignTokens.spaceXL),
+            child: AnimatedOpacity(
+              duration: reducedMotion
+                  ? Duration.zero
+                  : DesignTokens.durationMedium,
+              curve: DesignTokens.curveSmooth,
+              opacity: isVisible ? 1 : 0.6,
+              child: SizedBox(
+                height: safeHeight > 600 ? null : safeHeight * 0.82,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: DesignTokens.spaceXL),
+                    Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        color: theme.iconSurface,
+                        borderRadius: BorderRadius.circular(
+                          DesignTokens.radiusXXL,
+                        ),
+                      ),
+                      child: Center(
+                        child: Container(
+                          width: 50,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: theme.surfacePrimary,
+                            borderRadius: BorderRadius.circular(
+                              DesignTokens.radiusRound,
+                            ),
+                          ),
+                          child: Icon(
+                            _getIconForPage(data),
+                            size: 28,
+                            color: theme.featureIconForeground,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: DesignTokens.spaceXL),
+                    Text(
+                      data.title,
+                      style: AppTextStyles.displayLarge.copyWith(
+                        color: theme.textPrimary,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 32,
+                        height: 1.2,
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: DesignTokens.spaceL),
+                    Text(
+                      data.subtitle,
+                      style: AppTextStyles.bodyLarge.copyWith(
+                        color: theme.textSecondary,
+                        fontSize: 16,
+                        height: 1.5,
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: DesignTokens.spaceXL),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(DesignTokens.spaceL),
+                      decoration: BoxDecoration(
+                        color: theme.surfaceSecondary,
+                        borderRadius: BorderRadius.circular(
+                          DesignTokens.radiusL,
+                        ),
+                      ),
+                      child: Column(
+                        children: data.features
+                            .take(3)
+                            .toList()
+                            .asMap()
+                            .entries
+                            .map((entry) {
+                              final featureIndex = entry.key;
+                              final feature = entry.value;
 
-                   // Professional Fashion Icon
-                   Container(
-                     width: 120,
-                     height: 120,
-                     decoration: BoxDecoration(
-                       color: AppColors.neutral200,
-                       borderRadius: BorderRadius.circular(
-                         DesignTokens.radiusXXL,
-                       ),
-                     ),
-                     child: Center(
-                       child: Container(
-                         width: 50,
-                         height: 50,
-                         decoration: BoxDecoration(
-                           color: AppColors.neutralWhite,
-                           borderRadius: BorderRadius.circular(
-                             DesignTokens.radiusL,
-                           ),
-                         ),
-                         child: Icon(
-                           _getIconForPage(data),
-                           size: 24,
-                           color: AppColors.neutral800,
-                         ),
-                       ),
-                     ),
-                   ),
-
-                  const SizedBox(height: DesignTokens.spaceXL),
-
-                   // Title
-                   Text(
-                     data.title,
-                     style: AppTextStyles.displayLarge.copyWith(
-                       color: AppColors.neutral900,
-                       fontWeight: FontWeight.w800,
-                       fontSize: 32,
-                       height: 1.2,
-                     ),
-                     textAlign: TextAlign.center,
-                     maxLines: 2,
-                     overflow: TextOverflow.ellipsis,
-                   ),
-
-                  const SizedBox(height: DesignTokens.spaceL),
-
-                   // Subtitle
-                   Text(
-                     data.subtitle,
-                     style: AppTextStyles.bodyLarge.copyWith(
-                       color: AppColors.neutral700,
-                       fontSize: 16,
-                       height: 1.5,
-                     ),
-                     textAlign: TextAlign.center,
-                     maxLines: 3,
-                     overflow: TextOverflow.ellipsis,
-                   ),
-
-                  const SizedBox(height: DesignTokens.spaceXL),
-
-                   // Features List
-                   Container(
-                     padding: const EdgeInsets.all(DesignTokens.spaceL),
-                     decoration: BoxDecoration(
-                       color: AppColors.neutral100,
-                       borderRadius: BorderRadius.circular(DesignTokens.radiusL),
-                     ),
-                     child: Column(
-                       children: data.features
-                           .take(3)
-                           .toList()
-                           .asMap()
-                           .entries
-                           .map((entry) {
-                             final featureIndex = entry.key;
-                             final feature = entry.value;
-
-                             return Padding(
-                               padding: EdgeInsets.only(
-                                 bottom: featureIndex < 2
-                                     ? DesignTokens.spaceM
-                                     : 0,
-                               ),
-                               child: Row(
-                                 children: [
-                                   Container(
-                                     width: 20,
-                                     height: 20,
-                                     decoration: BoxDecoration(
-                                       color: AppColors.neutral300,
-                                       borderRadius: BorderRadius.circular(
-                                         DesignTokens.radiusRound,
-                                       ),
-                                     ),
-                                     child: Icon(
-                                       Icons.check,
-                                       color: AppColors.neutral700,
-                                       size: 14,
-                                     ),
-                                   ),
-                                   const SizedBox(
-                                     width: DesignTokens.spaceM,
-                                   ),
-                                   Expanded(
-                                     child: Text(
-                                       feature,
-                                       style: AppTextStyles.bodyMedium
-                                           .copyWith(
-                                             color: AppColors.neutral900,
-                                             fontWeight: FontWeight.w500,
-                                             fontSize: 14,
-                                           ),
-                                       maxLines: 1,
-                                       overflow: TextOverflow.ellipsis,
-                                     ),
-                                   ),
-                                 ],
-                               ),
-                             );
-                           })
-                           .toList(),
-                     ),
-                   ),
-
-                  const SizedBox(height: DesignTokens.spaceXL),
-                ],
+                              return Padding(
+                                padding: EdgeInsets.only(
+                                  bottom: featureIndex < 2
+                                      ? DesignTokens.spaceM
+                                      : 0,
+                                ),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 20,
+                                      height: 20,
+                                      decoration: BoxDecoration(
+                                        color: theme.featureIconBackground,
+                                        borderRadius: BorderRadius.circular(
+                                          DesignTokens.radiusRound,
+                                        ),
+                                      ),
+                                      child: Icon(
+                                        Icons.check_rounded,
+                                        color: theme.featureIconForeground,
+                                        size: 14,
+                                      ),
+                                    ),
+                                    const SizedBox(width: DesignTokens.spaceM),
+                                    Expanded(
+                                      child: Text(
+                                        feature,
+                                        style: AppTextStyles.bodyMedium
+                                            .copyWith(
+                                              color: theme.textPrimary,
+                                              fontWeight: FontWeight.w500,
+                                              fontSize: 14,
+                                            ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            })
+                            .toList(),
+                      ),
+                    ),
+                    const SizedBox(height: DesignTokens.spaceXL),
+                  ],
+                ),
               ),
             ),
           ),
@@ -360,18 +374,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  Widget _buildBottomNavigation() {
+  Widget _buildBottomNavigation(_OnboardingTheme theme) {
     return Padding(
       padding: const EdgeInsets.all(DesignTokens.spaceXL),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Progress indicator
           Container(
             width: double.infinity,
             height: 6,
             decoration: BoxDecoration(
-              color: AppColors.neutral300,
+              color: theme.progressBackground,
               borderRadius: BorderRadius.circular(DesignTokens.radiusS),
             ),
             child: FractionallySizedBox(
@@ -379,25 +392,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               widthFactor: (_currentPage + 1) / _pages.length,
               child: Container(
                 decoration: BoxDecoration(
-                  color: AppColors.neutral900,
+                  color: theme.accent,
                   borderRadius: BorderRadius.circular(DesignTokens.radiusS),
                 ),
               ),
             ),
           ),
-
           const SizedBox(height: DesignTokens.spaceXL),
-
-          // Next/Get Started Button
           ElevatedButton(
             onPressed: _nextPage,
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.neutral900,
-              foregroundColor: AppColors.neutralWhite,
+              backgroundColor: theme.accent,
+              foregroundColor: theme.accentForeground,
               minimumSize: const Size(double.infinity, 56),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(DesignTokens.radiusL),
               ),
+              shadowColor: theme.accent.withValues(alpha: 0.3),
+              elevation: theme.highContrast ? 0 : 2,
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -407,7 +419,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ? 'Get Started'
                       : 'Continue',
                   style: AppTextStyles.buttonLarge.copyWith(
-                    color: AppColors.neutralWhite,
+                    color: theme.accentForeground,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -416,7 +428,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   _currentPage == _pages.length - 1
                       ? Icons.rocket_launch
                       : Icons.arrow_forward,
-                  color: AppColors.neutralWhite,
+                  color: theme.accentForeground,
                   size: 20,
                 ),
               ],
@@ -429,15 +441,78 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 }
 
 class OnboardingData {
-  final String title;
-  final String subtitle;
-  final String iconPath;
-  final List<String> features;
-
   OnboardingData({
     required this.title,
     required this.subtitle,
     required this.iconPath,
     required this.features,
   });
+
+  final String title;
+  final String subtitle;
+  final String iconPath;
+  final List<String> features;
+}
+
+class _OnboardingTheme {
+  _OnboardingTheme({required this.highContrast})
+    : backgroundGradient = highContrast
+          ? const LinearGradient(
+              colors: [Color(0xFF010205), Color(0xFF131826)],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            )
+          : null,
+      backgroundColor = highContrast ? Colors.black : AppColors.neutralWhite,
+      surfacePrimary = highContrast
+          ? Colors.white.withValues(alpha: 0.1)
+          : AppColors.neutralWhite,
+      surfaceSecondary = highContrast
+          ? Colors.white.withValues(alpha: 0.06)
+          : AppColors.neutral100,
+      iconSurface = highContrast
+          ? Colors.white.withValues(alpha: 0.12)
+          : AppColors.neutral200,
+      textPrimary = highContrast ? Colors.white : AppColors.neutral900,
+      textSecondary = highContrast
+          ? Colors.white.withValues(alpha: 0.8)
+          : AppColors.neutral600,
+      textMuted = highContrast
+          ? Colors.white.withValues(alpha: 0.65)
+          : AppColors.neutral500,
+      accent = highContrast ? Colors.cyanAccent : AppColors.neutral900,
+      accentForeground = highContrast ? Colors.black : AppColors.neutralWhite,
+      indicatorInactive = highContrast
+          ? Colors.white.withValues(alpha: 0.25)
+          : AppColors.neutral300,
+      featureIconBackground = highContrast
+          ? Colors.white.withValues(alpha: 0.14)
+          : AppColors.neutral200,
+      featureIconForeground = highContrast
+          ? Colors.cyanAccent
+          : AppColors.neutral700,
+      progressBackground = highContrast
+          ? Colors.white.withValues(alpha: 0.25)
+          : AppColors.neutral300;
+
+  final bool highContrast;
+  final LinearGradient? backgroundGradient;
+  final Color backgroundColor;
+  final Color surfacePrimary;
+  final Color surfaceSecondary;
+  final Color iconSurface;
+  final Color textPrimary;
+  final Color textSecondary;
+  final Color textMuted;
+  final Color accent;
+  final Color accentForeground;
+  final Color indicatorInactive;
+  final Color featureIconBackground;
+  final Color featureIconForeground;
+  final Color progressBackground;
+
+  BoxDecoration get backgroundDecoration => BoxDecoration(
+    gradient: backgroundGradient,
+    color: backgroundGradient == null ? backgroundColor : null,
+  );
 }

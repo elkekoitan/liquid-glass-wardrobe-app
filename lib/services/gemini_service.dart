@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:google_generative_ai/google_generative_ai.dart';
 
 /// Gemini AI Service for virtual try-on functionality
@@ -73,9 +72,16 @@ class GeminiService {
       );
     }
 
+    final candidates = response.candidates;
+
+    if (candidates.isEmpty) {
+      throw Exception('No candidates returned by AI model.');
+    }
+
     // Find image part in candidates
-    for (final candidate in response.candidates ?? []) {
-      for (final part in candidate.content?.parts ?? []) {
+    for (final candidate in candidates) {
+      final parts = candidate.content.parts;
+      for (final part in parts) {
         if (part is DataPart) {
           final base64Data = base64Encode(part.bytes);
           return 'data:${part.mimeType};base64,$base64Data';
@@ -84,7 +90,7 @@ class GeminiService {
     }
 
     // Check finish reason
-    final finishReason = response.candidates.first.finishReason;
+    final finishReason = candidates.first.finishReason;
     if (finishReason != null && finishReason != FinishReason.stop) {
       throw Exception(
         'Image generation stopped unexpectedly. Reason: $finishReason. '

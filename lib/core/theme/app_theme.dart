@@ -14,7 +14,7 @@ class AppTheme {
       // Material 3 Design System
       useMaterial3: true,
       brightness: Brightness.light,
-      
+
       // Color Scheme - Professional Fashion Brand Colors
       colorScheme: ColorScheme.fromSeed(
         seedColor: AppColors.primaryMain,
@@ -26,8 +26,6 @@ class AppTheme {
         tertiary: AppColors.warning,
         surface: AppColors.neutralWhite,
         onSurface: AppColors.neutral900,
-        background: AppColors.neutral50,
-        onBackground: AppColors.neutral900,
         error: AppColors.error,
         onError: AppColors.neutralWhite,
       ),
@@ -44,7 +42,7 @@ class AppTheme {
         displaySmall: GoogleFonts.playfairDisplay(
           textStyle: AppTextStyles.displaySmall,
         ),
-        
+
         // Headlines
         headlineLarge: GoogleFonts.inter(
           textStyle: AppTextStyles.headlineLarge,
@@ -55,28 +53,16 @@ class AppTheme {
         headlineSmall: GoogleFonts.inter(
           textStyle: AppTextStyles.headlineSmall,
         ),
-        
+
         // Body Text
-        bodyLarge: GoogleFonts.inter(
-          textStyle: AppTextStyles.bodyLarge,
-        ),
-        bodyMedium: GoogleFonts.inter(
-          textStyle: AppTextStyles.bodyMedium,
-        ),
-        bodySmall: GoogleFonts.inter(
-          textStyle: AppTextStyles.bodySmall,
-        ),
-        
+        bodyLarge: GoogleFonts.inter(textStyle: AppTextStyles.bodyLarge),
+        bodyMedium: GoogleFonts.inter(textStyle: AppTextStyles.bodyMedium),
+        bodySmall: GoogleFonts.inter(textStyle: AppTextStyles.bodySmall),
+
         // Labels
-        labelLarge: GoogleFonts.inter(
-          textStyle: AppTextStyles.labelLarge,
-        ),
-        labelMedium: GoogleFonts.inter(
-          textStyle: AppTextStyles.labelMedium,
-        ),
-        labelSmall: GoogleFonts.inter(
-          textStyle: AppTextStyles.labelSmall,
-        ),
+        labelLarge: GoogleFonts.inter(textStyle: AppTextStyles.labelLarge),
+        labelMedium: GoogleFonts.inter(textStyle: AppTextStyles.labelMedium),
+        labelSmall: GoogleFonts.inter(textStyle: AppTextStyles.labelSmall),
       ),
 
       // AppBar Theme - Professional Fashion Brand Style
@@ -92,10 +78,7 @@ class AppTheme {
             fontWeight: FontWeight.w500,
           ),
         ),
-        iconTheme: const IconThemeData(
-          color: AppColors.neutral800,
-          size: 24,
-        ),
+        iconTheme: const IconThemeData(color: AppColors.neutral800, size: 24),
       ),
 
       // Elevated Button Theme - Luxury Brand Style
@@ -111,9 +94,7 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(DesignTokens.radiusM),
           ),
-          textStyle: GoogleFonts.inter(
-            textStyle: AppTextStyles.buttonMedium,
-          ),
+          textStyle: GoogleFonts.inter(textStyle: AppTextStyles.buttonMedium),
         ),
       ),
 
@@ -129,13 +110,8 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(DesignTokens.radiusM),
           ),
-          side: const BorderSide(
-            color: AppColors.primaryMain,
-            width: 1.5,
-          ),
-          textStyle: GoogleFonts.inter(
-            textStyle: AppTextStyles.buttonMedium,
-          ),
+          side: const BorderSide(color: AppColors.primaryMain, width: 1.5),
+          textStyle: GoogleFonts.inter(textStyle: AppTextStyles.buttonMedium),
         ),
       ),
 
@@ -162,7 +138,7 @@ class AppTheme {
       // Card Theme - Glass Morphism Effect
       cardTheme: CardThemeData(
         elevation: DesignTokens.elevationXS,
-        shadowColor: AppColors.neutral900.withOpacity(0.05),
+        shadowColor: AppColors.neutral900.withValues(alpha: 0.05),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(DesignTokens.radiusL),
         ),
@@ -176,38 +152,23 @@ class AppTheme {
         fillColor: AppColors.neutral50,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(DesignTokens.radiusM),
-          borderSide: BorderSide(
-            color: AppColors.neutral200,
-            width: 1,
-          ),
+          borderSide: BorderSide(color: AppColors.neutral200, width: 1),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(DesignTokens.radiusM),
-          borderSide: BorderSide(
-            color: AppColors.neutral200,
-            width: 1,
-          ),
+          borderSide: BorderSide(color: AppColors.neutral200, width: 1),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(DesignTokens.radiusM),
-          borderSide: BorderSide(
-            color: AppColors.primaryMain,
-            width: 2,
-          ),
+          borderSide: BorderSide(color: AppColors.primaryMain, width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(DesignTokens.radiusM),
-          borderSide: BorderSide(
-            color: AppColors.error,
-            width: 1,
-          ),
+          borderSide: BorderSide(color: AppColors.error, width: 1),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(DesignTokens.radiusM),
-          borderSide: BorderSide(
-            color: AppColors.error,
-            width: 2,
-          ),
+          borderSide: BorderSide(color: AppColors.error, width: 2),
         ),
         labelStyle: GoogleFonts.inter(
           textStyle: AppTextStyles.labelMedium.copyWith(
@@ -250,7 +211,7 @@ class AppTheme {
 
       // Visual Density - Compact for mobile
       visualDensity: VisualDensity.adaptivePlatformDensity,
-      
+
       // Platform Brightness
       platform: TargetPlatform.iOS, // For consistent styling
     );
@@ -262,7 +223,7 @@ class AppTheme {
       // Material 3 Design System
       useMaterial3: true,
       brightness: Brightness.dark,
-      
+
       // Dark Color Scheme
       colorScheme: ColorScheme.fromSeed(
         seedColor: AppColors.primaryMain,
@@ -274,8 +235,6 @@ class AppTheme {
         tertiary: AppColors.warning,
         surface: AppColors.neutral800,
         onSurface: AppColors.neutralWhite,
-        background: AppColors.neutralBlack,
-        onBackground: AppColors.neutralWhite,
         error: AppColors.errorLight,
         onError: AppColors.neutralBlack,
       ),
@@ -297,7 +256,7 @@ class AppTheme {
             color: AppColors.neutralWhite,
           ),
         ),
-        
+
         // Body text for dark mode
         bodyLarge: GoogleFonts.inter(
           textStyle: AppTextStyles.bodyLarge.copyWith(
@@ -329,10 +288,7 @@ class AppTheme {
             fontWeight: FontWeight.w500,
           ),
         ),
-        iconTheme: const IconThemeData(
-          color: AppColors.neutral200,
-          size: 24,
-        ),
+        iconTheme: const IconThemeData(color: AppColors.neutral200, size: 24),
       ),
 
       // Dark Elevated Button
@@ -354,7 +310,7 @@ class AppTheme {
       // Dark Card Theme
       cardTheme: CardThemeData(
         elevation: DesignTokens.elevationXS,
-        shadowColor: AppColors.neutralBlack.withOpacity(0.3),
+        shadowColor: AppColors.neutralBlack.withValues(alpha: 0.3),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(DesignTokens.radiusL),
         ),
@@ -368,24 +324,15 @@ class AppTheme {
         fillColor: AppColors.neutral700,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(DesignTokens.radiusM),
-          borderSide: BorderSide(
-            color: AppColors.neutral600,
-            width: 1,
-          ),
+          borderSide: BorderSide(color: AppColors.neutral600, width: 1),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(DesignTokens.radiusM),
-          borderSide: BorderSide(
-            color: AppColors.neutral600,
-            width: 1,
-          ),
+          borderSide: BorderSide(color: AppColors.neutral600, width: 1),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(DesignTokens.radiusM),
-          borderSide: BorderSide(
-            color: AppColors.secondaryMain,
-            width: 2,
-          ),
+          borderSide: BorderSide(color: AppColors.secondaryMain, width: 2),
         ),
         labelStyle: GoogleFonts.inter(
           textStyle: AppTextStyles.labelMedium.copyWith(
@@ -401,7 +348,7 @@ class AppTheme {
 
       // Visual Density
       visualDensity: VisualDensity.adaptivePlatformDensity,
-      
+
       // Platform
       platform: TargetPlatform.iOS,
     );
@@ -417,16 +364,16 @@ class AppTheme {
 extension AppThemeExtension on ThemeData {
   /// Glass morphism gradient
   LinearGradient get glassGradient => AppColors.glassGradient;
-  
+
   /// Primary brand gradient
   LinearGradient get primaryGradient => AppColors.primaryGradient;
-  
+
   /// Secondary brand gradient
   LinearGradient get secondaryGradient => AppColors.secondaryGradient;
-  
+
   /// Luxury gradient
   LinearGradient get luxuryGradient => AppColors.luxuryGradient;
-  
+
   /// Fashion AI gradient
   RadialGradient get fashionAIGradient => AppColors.fashionAIGradient;
 }

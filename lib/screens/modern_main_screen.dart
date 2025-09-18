@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import '../design_system/design_tokens.dart';
 import '../design_system/components/fashion_components.dart';
 
@@ -104,10 +103,7 @@ class _ModernMainScreenState extends State<ModernMainScreen>
                 backgroundColor: AppColors.neutral900,
                 foregroundColor: AppColors.neutralWhite,
                 onPressed: () {
-                  Navigator.pushNamed(
-                    context,
-                    AppRouter.photoUpload,
-                  );
+                  Navigator.pushNamed(context, AppRouter.photoUpload);
                 },
                 child: const Icon(Icons.add_a_photo),
               ),

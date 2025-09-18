@@ -19,7 +19,6 @@ class ModernPhotoUploadScreen extends StatefulWidget {
 class _ModernPhotoUploadScreenState extends State<ModernPhotoUploadScreen>
     with TickerProviderStateMixin {
   late AnimationController _uploadController;
-  late Animation<double> _uploadAnimation;
 
   File? _selectedImage;
   bool _isUploading = false;
@@ -36,13 +35,6 @@ class _ModernPhotoUploadScreenState extends State<ModernPhotoUploadScreen>
       duration: DesignTokens.durationSlow,
       vsync: this,
     );
-
-    _uploadAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _uploadController,
-        curve: DesignTokens.curveSmooth,
-      ),
-    );
   }
 
   @override
@@ -52,6 +44,7 @@ class _ModernPhotoUploadScreenState extends State<ModernPhotoUploadScreen>
   }
 
   Future<void> _pickImage(picker.ImageSource source) async {
+    final messenger = ScaffoldMessenger.of(context);
     try {
       final File? pickedFile = await ImageUtils.pickImage(
         source: source,
@@ -64,6 +57,7 @@ class _ModernPhotoUploadScreenState extends State<ModernPhotoUploadScreen>
 
       if (!ImageUtils.isValidImageFile(pickedFile)) {
         _showErrorSnackBar(
+          messenger,
           'Please select a valid image file (JPG, PNG, WebP).',
         );
         return;
@@ -73,6 +67,7 @@ class _ModernPhotoUploadScreenState extends State<ModernPhotoUploadScreen>
         imageFile: pickedFile,
       );
 
+      if (!mounted) return;
       if (croppedFile == null) return;
 
       setState(() {
@@ -81,11 +76,15 @@ class _ModernPhotoUploadScreenState extends State<ModernPhotoUploadScreen>
 
       await _processImage(croppedFile);
     } catch (e) {
-      _showErrorSnackBar('Failed to process image: $e');
+      _showErrorSnackBar(messenger, 'Failed to process image: $e');
     }
   }
 
   Future<void> _processImage(File imageFile) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final onPhotoUploaded = widget.onPhotoUploaded;
+    final provider = context.read<FitCheckProvider>();
+
     setState(() {
       _isUploading = true;
       _uploadProgress = 0.0;
@@ -103,22 +102,23 @@ class _ModernPhotoUploadScreenState extends State<ModernPhotoUploadScreen>
       }
     }
 
-    final provider = context.read<FitCheckProvider>();
     await provider.processModelImage(imageFile);
+
+    if (!mounted) return;
 
     setState(() {
       _isUploading = false;
     });
 
     if (provider.error == null) {
-      widget.onPhotoUploaded?.call();
+      onPhotoUploaded?.call();
     } else {
-      _showErrorSnackBar(provider.error!);
+      _showErrorSnackBar(messenger, provider.error!);
     }
   }
 
-  void _showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
+  void _showErrorSnackBar(ScaffoldMessengerState messenger, String message) {
+    messenger.showSnackBar(
       SnackBar(
         content: Text(message),
         backgroundColor: AppColors.error,
@@ -216,7 +216,12 @@ class _ModernPhotoUploadScreenState extends State<ModernPhotoUploadScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Camera', style: AppTextStyles.headlineMedium.copyWith(color: AppColors.neutral900)),
+                        Text(
+                          'Camera',
+                          style: AppTextStyles.headlineMedium.copyWith(
+                            color: AppColors.neutral900,
+                          ),
+                        ),
                         Text(
                           'Take a new photo',
                           style: AppTextStyles.bodySmall.copyWith(
@@ -271,7 +276,12 @@ class _ModernPhotoUploadScreenState extends State<ModernPhotoUploadScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Gallery', style: AppTextStyles.headlineMedium.copyWith(color: AppColors.neutral900)),
+                        Text(
+                          'Gallery',
+                          style: AppTextStyles.headlineMedium.copyWith(
+                            color: AppColors.neutral900,
+                          ),
+                        ),
                         Text(
                           'Choose from your photos',
                           style: AppTextStyles.bodySmall.copyWith(
@@ -381,21 +391,14 @@ class _ModernPhotoUploadScreenState extends State<ModernPhotoUploadScreen>
               height: 200,
               decoration: BoxDecoration(
                 color: AppColors.neutral100,
-                borderRadius: BorderRadius.circular(
-                  DesignTokens.radiusXXL,
-                ),
-                border: Border.all(
-                  color: AppColors.neutral300,
-                  width: 2,
-                ),
+                borderRadius: BorderRadius.circular(DesignTokens.radiusXXL),
+                border: Border.all(color: AppColors.neutral300, width: 2),
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(
-                      DesignTokens.spaceL,
-                    ),
+                    padding: const EdgeInsets.all(DesignTokens.spaceL),
                     decoration: BoxDecoration(
                       color: AppColors.neutral200,
                       borderRadius: BorderRadius.circular(
@@ -502,10 +505,7 @@ class _ModernPhotoUploadScreenState extends State<ModernPhotoUploadScreen>
               decoration: BoxDecoration(
                 color: AppColors.neutral100,
                 borderRadius: BorderRadius.circular(DesignTokens.radiusXL),
-                border: Border.all(
-                  color: AppColors.neutral300,
-                  width: 2,
-                ),
+                border: Border.all(color: AppColors.neutral300, width: 2),
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(DesignTokens.radiusXL - 2),
@@ -520,7 +520,7 @@ class _ModernPhotoUploadScreenState extends State<ModernPhotoUploadScreen>
                     if (_isUploading)
                       Positioned.fill(
                         child: Container(
-                          color: AppColors.neutral900.withOpacity(0.7),
+                          color: AppColors.neutral900.withValues(alpha: 0.7),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -592,20 +592,29 @@ class _ModernPhotoUploadScreenState extends State<ModernPhotoUploadScreen>
                       });
                     },
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: DesignTokens.spaceM),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: DesignTokens.spaceM,
+                      ),
                       side: BorderSide(color: AppColors.neutral300),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(DesignTokens.radiusM),
+                        borderRadius: BorderRadius.circular(
+                          DesignTokens.radiusM,
+                        ),
                       ),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.photo_camera_back, color: AppColors.neutral700),
+                        Icon(
+                          Icons.photo_camera_back,
+                          color: AppColors.neutral700,
+                        ),
                         const SizedBox(width: DesignTokens.spaceS),
                         Text(
                           'Choose Different',
-                          style: AppTextStyles.buttonMedium.copyWith(color: AppColors.neutral900),
+                          style: AppTextStyles.buttonMedium.copyWith(
+                            color: AppColors.neutral900,
+                          ),
                         ),
                       ],
                     ),
@@ -617,11 +626,15 @@ class _ModernPhotoUploadScreenState extends State<ModernPhotoUploadScreen>
                   child: ElevatedButton(
                     onPressed: () => _processImage(_selectedImage!),
                     style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: DesignTokens.spaceM),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: DesignTokens.spaceM,
+                      ),
                       backgroundColor: AppColors.neutral900,
                       foregroundColor: AppColors.neutralWhite,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(DesignTokens.radiusM),
+                        borderRadius: BorderRadius.circular(
+                          DesignTokens.radiusM,
+                        ),
                       ),
                     ),
                     child: Row(

@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import '../models/models.dart';
 import '../services/gemini_service.dart';
 
-
 /// Main state provider for FitCheck app
 /// Manages outfit history, wardrobe items, loading states, and AI operations
 
@@ -314,26 +313,4 @@ class FitCheckProvider extends ChangeNotifier {
   }
 
   /// Get friendly error message
-  String _getFriendlyErrorMessage(dynamic error, String fallback) {
-    final errorString = error.toString();
-
-    if (errorString.contains('blocked')) {
-      return 'The AI detected inappropriate content. Please try a different image.';
-    }
-
-    if (errorString.contains('safety')) {
-      return 'Image processing was blocked by safety filters. Please try another image.';
-    }
-
-    if (errorString.contains('network') || errorString.contains('connection')) {
-      return 'Network error. Please check your internet connection and try again.';
-    }
-
-    if (errorString.contains('API key') ||
-        errorString.contains('unauthorized')) {
-      return 'API configuration error. Please check your settings.';
-    }
-
-    return '$fallback: ${errorString.split('.').first}.';
-  }
 }

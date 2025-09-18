@@ -57,7 +57,7 @@ class AppTypography {
       Shadow(
         offset: const Offset(0, 2),
         blurRadius: 4,
-        color: Colors.black.withOpacity(0.25),
+        color: Colors.black.withValues(alpha: 0.25),
       ),
     ],
   );
@@ -71,7 +71,7 @@ class AppTypography {
       Shadow(
         offset: const Offset(0, 1),
         blurRadius: 3,
-        color: Colors.black.withOpacity(0.2),
+        color: Colors.black.withValues(alpha: 0.2),
       ),
     ],
   );
@@ -85,7 +85,7 @@ class AppTypography {
       Shadow(
         offset: const Offset(0, 1),
         blurRadius: 2,
-        color: Colors.black.withOpacity(0.15),
+        color: Colors.black.withValues(alpha: 0.15),
       ),
     ],
   );
@@ -165,7 +165,7 @@ class AppTypography {
       Shadow(
         offset: const Offset(0, 4),
         blurRadius: 8,
-        color: Colors.black.withOpacity(0.3),
+        color: Colors.black.withValues(alpha: 0.3),
       ),
     ],
   );
@@ -179,7 +179,7 @@ class AppTypography {
       Shadow(
         offset: const Offset(0, 3),
         blurRadius: 6,
-        color: Colors.black.withOpacity(0.25),
+        color: Colors.black.withValues(alpha: 0.25),
       ),
     ],
   );
@@ -193,7 +193,7 @@ class AppTypography {
       Shadow(
         offset: const Offset(0, 2),
         blurRadius: 4,
-        color: Colors.black.withOpacity(0.2),
+        color: Colors.black.withValues(alpha: 0.2),
       ),
     ],
   );
@@ -225,12 +225,12 @@ class AppTypography {
       Shadow(
         offset: const Offset(0, 1),
         blurRadius: 2,
-        color: Colors.black.withOpacity(0.3),
+        color: Colors.black.withValues(alpha: 0.3),
       ),
       Shadow(
         offset: const Offset(0, 0),
         blurRadius: 4,
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withValues(alpha: 0.1),
       ),
     ],
   );
@@ -244,7 +244,7 @@ class AppTypography {
       Shadow(
         offset: const Offset(0, 1),
         blurRadius: 1,
-        color: Colors.black.withOpacity(0.2),
+        color: Colors.black.withValues(alpha: 0.2),
       ),
     ],
   );
@@ -271,12 +271,12 @@ class AppTypography {
         Shadow(
           offset: const Offset(0, 1),
           blurRadius: 2,
-          color: Colors.black.withOpacity(0.3),
+          color: Colors.black.withValues(alpha: 0.3),
         ),
         Shadow(
           offset: const Offset(0, 0),
           blurRadius: 4,
-          color: Colors.white.withOpacity(0.1),
+          color: Colors.white.withValues(alpha: 0.1),
         ),
       ],
     );
@@ -289,17 +289,17 @@ class AppTypography {
         Shadow(
           offset: const Offset(0, 0),
           blurRadius: 10,
-          color: glowColor.withOpacity(0.5),
+          color: glowColor.withValues(alpha: 0.5),
         ),
         Shadow(
           offset: const Offset(0, 0),
           blurRadius: 20,
-          color: glowColor.withOpacity(0.3),
+          color: glowColor.withValues(alpha: 0.3),
         ),
         Shadow(
           offset: const Offset(0, 1),
           blurRadius: 3,
-          color: Colors.black.withOpacity(0.3),
+          color: Colors.black.withValues(alpha: 0.3),
         ),
       ],
     );

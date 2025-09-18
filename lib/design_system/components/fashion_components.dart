@@ -34,7 +34,7 @@ class FashionCategoryCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(DesignTokens.radiusXL),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.neutralBlack.withOpacity(0.1),
+                  color: AppColors.neutralBlack.withValues(alpha: 0.1),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -57,7 +57,7 @@ class FashionCategoryCard extends StatelessWidget {
                                   end: Alignment.bottomRight,
                                   colors: [
                                     overlayColor!,
-                                    overlayColor!.withOpacity(0.8),
+                                    overlayColor!.withValues(alpha: 0.8),
                                   ],
                                 )
                               : AppColors.primaryGradient,
@@ -82,7 +82,7 @@ class FashionCategoryCard extends StatelessWidget {
                           end: Alignment.bottomCenter,
                           colors: [
                             Colors.transparent,
-                            AppColors.neutralBlack.withOpacity(0.7),
+                            AppColors.neutralBlack.withValues(alpha: 0.7),
                           ],
                         ),
                       ),
@@ -103,7 +103,9 @@ class FashionCategoryCard extends StatelessWidget {
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.neutralBlack.withOpacity(0.2),
+                              color: AppColors.neutralBlack.withValues(
+                                alpha: 0.2,
+                              ),
                               blurRadius: 8,
                               offset: const Offset(0, 2),
                             ),
@@ -137,7 +139,9 @@ class FashionCategoryCard extends StatelessWidget {
                         Text(
                           subtitle,
                           style: AppTextStyles.bodySmall.copyWith(
-                            color: AppColors.neutralWhite.withOpacity(0.9),
+                            color: AppColors.neutralWhite.withValues(
+                              alpha: 0.9,
+                            ),
                           ),
                         ),
                       ],
@@ -263,14 +267,16 @@ class _OutfitCardState extends State<OutfitCard>
                                 DesignTokens.spaceS,
                               ),
                               decoration: BoxDecoration(
-                                color: AppColors.neutralWhite.withOpacity(0.9),
+                                color: AppColors.neutralWhite.withValues(
+                                  alpha: 0.9,
+                                ),
                                 borderRadius: BorderRadius.circular(
                                   DesignTokens.radiusRound,
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppColors.neutralBlack.withOpacity(
-                                      0.1,
+                                    color: AppColors.neutralBlack.withValues(
+                                      alpha: 0.1,
                                     ),
                                     blurRadius: 8,
                                     offset: const Offset(0, 2),
@@ -344,7 +350,9 @@ class _OutfitCardState extends State<OutfitCard>
                             width: 32,
                             height: 32,
                             decoration: BoxDecoration(
-                              color: AppColors.neutralWhite.withOpacity(0.9),
+                              color: AppColors.neutralWhite.withValues(
+                                alpha: 0.9,
+                              ),
                               borderRadius: BorderRadius.circular(
                                 DesignTokens.radiusS,
                               ),
@@ -431,7 +439,7 @@ class ModelGridItem extends StatelessWidget {
               borderRadius: BorderRadius.circular(DesignTokens.radiusL),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.neutralBlack.withOpacity(0.05),
+                  color: AppColors.neutralBlack.withValues(alpha: 0.05),
                   blurRadius: 15,
                   offset: const Offset(0, 5),
                 ),
@@ -470,7 +478,7 @@ class ModelGridItem extends StatelessWidget {
                           end: Alignment.bottomCenter,
                           colors: [
                             Colors.transparent,
-                            AppColors.neutralBlack.withOpacity(0.6),
+                            AppColors.neutralBlack.withValues(alpha: 0.6),
                           ],
                         ),
                       ),
@@ -499,7 +507,9 @@ class ModelGridItem extends StatelessWidget {
                         Text(
                           '$outfitCount outfits',
                           style: AppTextStyles.bodySmall.copyWith(
-                            color: AppColors.neutralWhite.withOpacity(0.8),
+                            color: AppColors.neutralWhite.withValues(
+                              alpha: 0.8,
+                            ),
                           ),
                         ),
                       ],
@@ -613,8 +623,8 @@ class WishlistItemCard extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: isAvailable
-                            ? AppColors.success.withOpacity(0.1)
-                            : AppColors.warning.withOpacity(0.1),
+                            ? AppColors.success.withValues(alpha: 0.1)
+                            : AppColors.warning.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(
                           DesignTokens.radiusS,
                         ),
@@ -645,7 +655,7 @@ class WishlistItemCard extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(DesignTokens.spaceS),
                   decoration: BoxDecoration(
-                    color: AppColors.primary500.withOpacity(0.1),
+                    color: AppColors.primary500.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(DesignTokens.radiusS),
                   ),
                   child: const Icon(
@@ -661,7 +671,7 @@ class WishlistItemCard extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(DesignTokens.spaceS),
                   decoration: BoxDecoration(
-                    color: AppColors.error.withOpacity(0.1),
+                    color: AppColors.error.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(DesignTokens.radiusS),
                   ),
                   child: const Icon(
@@ -757,7 +767,7 @@ class _QuickActionButtonState extends State<QuickActionButton>
                 borderRadius: BorderRadius.circular(DesignTokens.radiusXXL),
                 boxShadow: [
                   BoxShadow(
-                    color: widget.backgroundColor.withOpacity(0.3),
+                    color: widget.backgroundColor.withValues(alpha: 0.3),
                     blurRadius: 20,
                     offset: const Offset(0, 8),
                   ),

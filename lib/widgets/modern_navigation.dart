@@ -87,7 +87,7 @@ class _ModernBottomNavigationState extends State<ModernBottomNavigation>
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.neutralBlack.withOpacity(0.1),
+            color: AppColors.neutralBlack.withValues(alpha: 0.1),
             blurRadius: 30,
             offset: const Offset(0, -10),
           ),
@@ -134,7 +134,7 @@ class _ModernBottomNavigationState extends State<ModernBottomNavigation>
                                     ? [
                                         BoxShadow(
                                           color: AppColors.primary500
-                                              .withOpacity(0.3),
+                                              .withValues(alpha: 0.3),
                                           blurRadius: 15,
                                           offset: const Offset(0, 5),
                                         ),
@@ -295,7 +295,7 @@ class _ModernFloatingActionButtonState extends State<ModernFloatingActionButton>
                 borderRadius: BorderRadius.circular(DesignTokens.radiusXXL),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primary500.withOpacity(0.3),
+                    color: AppColors.primary500.withValues(alpha: 0.3),
                     blurRadius: 20,
                     offset: const Offset(0, 8),
                   ),
@@ -338,7 +338,7 @@ class ModernAppBar extends StatelessWidget implements PreferredSizeWidget {
       height: preferredSize.height + MediaQuery.of(context).padding.top,
       decoration: BoxDecoration(
         color: hasGlassEffect
-            ? AppColors.neutralWhite.withOpacity(0.95)
+            ? AppColors.neutralWhite.withValues(alpha: 0.95)
             : backgroundColor ?? AppColors.neutralWhite,
         borderRadius: const BorderRadius.vertical(
           bottom: Radius.circular(DesignTokens.radiusXXL),
@@ -346,7 +346,7 @@ class ModernAppBar extends StatelessWidget implements PreferredSizeWidget {
         boxShadow: elevation > 0
             ? [
                 BoxShadow(
-                  color: AppColors.neutralBlack.withOpacity(0.05),
+                  color: AppColors.neutralBlack.withValues(alpha: 0.05),
                   blurRadius: 20,
                   offset: const Offset(0, 5),
                 ),

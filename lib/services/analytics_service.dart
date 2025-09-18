@@ -14,6 +14,10 @@ class AnalyticsService {
 
   /// Logs an analytics event with optional parameters.
   void logEvent(String name, {Map<String, Object?> parameters = const {}}) {
-    developer.log('AnalyticsEvent', name: name, error: parameters.isEmpty ? null : parameters);
+    developer.log(
+      'AnalyticsEvent',
+      name: name,
+      error: parameters.isEmpty ? null : parameters,
+    );
   }
 }

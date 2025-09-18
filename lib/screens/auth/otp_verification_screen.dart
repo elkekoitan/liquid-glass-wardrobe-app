@@ -22,7 +22,7 @@ class OtpVerificationScreen extends StatelessWidget {
     final personalization = context.watch<PersonalizationProvider>();
 
     if (!personalization.hasLoaded) {
-      return _buildLoadingShell();
+      return _buildLoadingShell(highContrast: personalization.highContrast);
     }
 
     return FutureBuilder<CapsuleModel?>(
@@ -31,12 +31,13 @@ class OtpVerificationScreen extends StatelessWidget {
       ),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return _buildLoadingShell();
+          return _buildLoadingShell(highContrast: personalization.highContrast);
         }
 
         if (snapshot.hasError || !snapshot.hasData) {
           return _buildErrorShell(
             message: 'Unable to load capsule data. Please try again.',
+            highContrast: personalization.highContrast,
           );
         }
 
@@ -54,12 +55,19 @@ class OtpVerificationScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildLoadingShell() {
-    return _buildShell(child: const Center(child: CircularProgressIndicator()));
+  Widget _buildLoadingShell({required bool highContrast}) {
+    return _buildShell(
+      highContrast: highContrast,
+      child: const Center(child: CircularProgressIndicator()),
+    );
   }
 
-  Widget _buildErrorShell({required String message}) {
+  Widget _buildErrorShell({
+    required String message,
+    required bool highContrast,
+  }) {
     return _buildShell(
+      highContrast: highContrast,
       child: Center(
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.huge),
@@ -73,17 +81,23 @@ class OtpVerificationScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildShell({required Widget child}) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
+  Widget _buildShell({required Widget child, required bool highContrast}) {
+    final LinearGradient gradient = highContrast
+        ? const LinearGradient(
+            colors: [Color(0xFF000000), Color(0xFF10151F)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          )
+        : const LinearGradient(
             colors: [Color(0xFF0D1218), Color(0xFF1F2937)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-          ),
-        ),
+          );
+
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Container(
+        decoration: BoxDecoration(gradient: gradient),
         child: SafeArea(child: child),
       ),
     );
@@ -218,7 +232,7 @@ class _OtpVerificationViewState extends State<_OtpVerificationView> {
                           decoration: BoxDecoration(
                             gradient: RadialGradient(
                               colors: [
-                                Colors.white.withOpacity(0.08),
+                                Colors.white.withValues(alpha: 0.08),
                                 Colors.transparent,
                               ],
                               radius: 0.85,
@@ -270,8 +284,8 @@ class _OtpVerificationViewState extends State<_OtpVerificationView> {
 
     final selectedMethod = await showModalBottomSheet<String>(
       context: context,
-      backgroundColor: Colors.black.withOpacity(0.6),
-      barrierColor: Colors.black.withOpacity(0.4),
+      backgroundColor: Colors.black.withValues(alpha: 0.6),
+      barrierColor: Colors.black.withValues(alpha: 0.4),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
@@ -547,7 +561,7 @@ class _SuccessState extends StatelessWidget {
             vertical: AppSpacing.md,
           ),
           decoration: BoxDecoration(
-            color: AppColors.successGlass.withOpacity(0.8),
+            color: AppColors.successGlass.withValues(alpha: 0.8),
             borderRadius: BorderRadius.circular(24),
           ),
           child: Row(
@@ -626,12 +640,12 @@ class _OtpDigitCell extends StatelessWidget {
       height: 72,
       decoration: BoxDecoration(
         color: hasError
-            ? AppColors.errorGlass.withOpacity(0.8)
-            : Colors.white.withOpacity(0.08),
+            ? AppColors.errorGlass.withValues(alpha: 0.8)
+            : Colors.white.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
           color: hasError
-              ? Colors.redAccent.withOpacity(0.8)
+              ? Colors.redAccent.withValues(alpha: 0.8)
               : isActive
               ? AppColors.liquidCyan
               : Colors.white24,
@@ -640,7 +654,7 @@ class _OtpDigitCell extends StatelessWidget {
         boxShadow: [
           if (isActive)
             BoxShadow(
-              color: AppColors.liquidCyan.withOpacity(0.35),
+              color: AppColors.liquidCyan.withValues(alpha: 0.35),
               blurRadius: 16,
               spreadRadius: 1,
             ),
@@ -746,17 +760,17 @@ class _TimerChip extends StatelessWidget {
 
     switch (status) {
       case _TimerChipStatus.warning:
-        background = Colors.orange.withOpacity(0.25);
+        background = Colors.orange.withValues(alpha: 0.25);
         foreground = Colors.orangeAccent;
         break;
       case _TimerChipStatus.expired:
-        background = Colors.redAccent.withOpacity(0.2);
+        background = Colors.redAccent.withValues(alpha: 0.2);
         foreground = Colors.redAccent;
         break;
       case _TimerChipStatus.normal:
-      default:
-        background = Colors.white.withOpacity(0.12);
+        background = Colors.white.withValues(alpha: 0.12);
         foreground = Colors.white;
+        break;
     }
 
     return Container(

@@ -11,7 +11,7 @@ class UserModel {
   final DateTime createdAt;
   final DateTime? lastSignIn;
   final bool isEmailVerified;
-  
+
   // Extended Profile Data
   final UserProfile? profile;
   final UserPreferences? preferences;
@@ -132,7 +132,8 @@ class UserModel {
   int get hashCode => uid.hashCode;
 
   @override
-  String toString() => 'UserModel(uid: $uid, email: $email, displayName: $displayName)';
+  String toString() =>
+      'UserModel(uid: $uid, email: $email, displayName: $displayName)';
 }
 
 /// User Profile - Extended user information
@@ -148,7 +149,7 @@ class UserProfile {
   final List<String>? interests;
   final String? website;
   final Map<String, String>? socialLinks;
-  
+
   // Fashion-specific data
   final UserMeasurements? measurements;
   final List<String>? preferredBrands;

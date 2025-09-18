@@ -59,15 +59,14 @@ class FirebaseConfig {
   static Future<FirebaseApp> initialize() async {
     try {
       debugPrint('🔥 Initializing Firebase...');
-      
+
       final app = await Firebase.initializeApp(
         name: 'liquid-glass-fit-check',
         options: currentPlatform,
       );
-      
+
       debugPrint('🔥 Firebase initialized successfully: ${app.name}');
       return app;
-      
     } catch (e) {
       debugPrint('❌ Firebase initialization failed: $e');
       rethrow;
@@ -75,7 +74,8 @@ class FirebaseConfig {
   }
 
   /// Development/Testing configuration
-  static const bool useFirebaseEmulator = false; // Set to true for local testing
+  static const bool useFirebaseEmulator =
+      false; // Set to true for local testing
   static const String emulatorHost = 'localhost';
   static const int authEmulatorPort = 9099;
   static const int firestoreEmulatorPort = 8080;
@@ -87,10 +87,10 @@ class FirebaseConfig {
 
     try {
       debugPrint('🔧 Configuring Firebase Emulators...');
-      
+
       // Note: Emulator configuration would be done here
       // This is a placeholder for future development
-      
+
       debugPrint('🔧 Firebase Emulators configured');
     } catch (e) {
       debugPrint('❌ Failed to configure Firebase Emulators: $e');
