@@ -6,6 +6,7 @@ import '../../screens/auth/register_screen.dart';
 import '../../screens/auth/forgot_password_screen.dart';
 import '../../screens/auth/profile_setup_screen.dart';
 import '../../screens/auth/otp_verification_screen.dart';
+import '../../screens/main_app_screen.dart';
 import '../../screens/main/home_screen.dart';
 import '../../screens/capsules/capsule_gallery_screen.dart';
 import '../../screens/settings/personalization_settings_screen.dart';
@@ -94,6 +95,12 @@ class AppRouter {
         );
 
       case main:
+        return _createRoute(
+          const MainAppScreen(),
+          settings: settings,
+          transitionType: _TransitionType.fade,
+        );
+
       case home:
         return _createRoute(
           const HomeScreen(),

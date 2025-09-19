@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/navigation_provider.dart';
+import '../../core/router/app_router.dart';
 import '../../models/user_model.dart';
 import '../../design_system/design_tokens.dart';
 
@@ -102,7 +104,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       if (success && mounted) {
         _showSnackBar('Profile setup completed successfully!');
         // Navigate to main app
-        Navigator.pushReplacementNamed(context, '/home');
+        context.read<NavigationProvider>().replace(AppRouter.main);
       } else if (mounted) {
         _showSnackBar(
           authProvider.errorMessage ?? 'Failed to update profile',
@@ -277,8 +279,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
                       // Skip button
                       TextButton(
-                        onPressed: () =>
-                            Navigator.pushReplacementNamed(context, '/home'),
+                        onPressed: () => context
+                            .read<NavigationProvider>()
+                            .replace(AppRouter.main),
                         child: Text(
                           'Skip for now',
                           style: AppTextStyles.bodyMedium.copyWith(

@@ -5,6 +5,7 @@ import '../../design_system/design_tokens.dart';
 
 import '../../services/login_preferences_service.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/navigation_provider.dart';
 import '../../core/router/app_router.dart';
 import '../../core/services/error_service.dart';
 
@@ -98,7 +99,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (success && mounted) {
-        Navigator.pushReplacementNamed(context, AppRouter.otpVerification);
+        context.read<NavigationProvider>().replace(AppRouter.otpVerification);
       } else {
         final message = authProvider.errorMessage ?? 'Login failed';
         ErrorService.showError(message);
@@ -135,7 +136,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ErrorService.showInfo('Tekrar hoşgeldin!');
         }
 
-        Navigator.pushReplacementNamed(context, AppRouter.otpVerification);
+        context.read<NavigationProvider>().replace(AppRouter.otpVerification);
       } else if (mounted) {
         final message =
             authProvider.errorMessage ?? 'Google ile giriş başarısız oldu';
@@ -175,7 +176,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ErrorService.showInfo('Tekrar hoşgeldin!');
         }
 
-        Navigator.pushReplacementNamed(context, AppRouter.otpVerification);
+        context.read<NavigationProvider>().replace(AppRouter.otpVerification);
       } else if (mounted) {
         final message =
             authProvider.errorMessage ?? 'Apple ile giriş başarısız oldu';
@@ -197,11 +198,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
   // Navigation helpers
   void _navigateToRegister() {
-    Navigator.pushNamed(context, AppRouter.register);
+    context.read<NavigationProvider>().push(AppRouter.register);
   }
 
   void _navigateToForgotPassword() {
-    Navigator.pushNamed(context, AppRouter.forgotPassword);
+    context.read<NavigationProvider>().push(AppRouter.forgotPassword);
   }
 
   @override

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../providers/fit_check_provider.dart';
+import '../providers/personalization_provider.dart';
 import '../services/gemini_service.dart';
 import '../core/theme/app_colors.dart';
 import '../core/theme/app_typography.dart';
@@ -14,126 +16,121 @@ class CanvasScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppColors.surfaceVariant.withValues(alpha: 0.7),
-              AppColors.surface,
-              AppColors.surfaceVariant.withValues(alpha: 0.7),
+    final bool highContrast = context.select<PersonalizationProvider, bool>(
+      (prefs) => prefs.highContrast,
+    );
+
+    return Consumer<FitCheckProvider>(
+      builder: (context, provider, child) {
+        final displayUrl = provider.displayImageUrl;
+        return Padding(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Stack(
+            children: [
+              Positioned(
+                top: AppSpacing.lg,
+                left: AppSpacing.lg,
+                child: GlassContainer.light(
+                  child: LiquidButton.secondary(
+                    text: 'Start Over',
+                    onPressed: provider.isLoading
+                        ? null
+                        : () {
+                            provider.startOver();
+                            Navigator.maybePop(context);
+                          },
+                  ),
+                ),
+              ),
+              Positioned.fill(
+                child: Center(
+                  child: AspectRatio(
+                    aspectRatio: 2 / 3,
+                    child: _CanvasViewport(
+                      provider: provider,
+                      displayUrl: displayUrl,
+                      highContrast: highContrast,
+                    ),
+                  ),
+                ),
+              ),
+              if (displayUrl != null && !provider.isLoading)
+                Positioned(
+                  bottom: AppSpacing.xl,
+                  left: 0,
+                  right: 0,
+                  child: _PoseControls(highContrast: highContrast),
+                ),
             ],
           ),
-        ),
-        child: SafeArea(
-          child: Consumer<FitCheckProvider>(
-            builder: (context, provider, child) {
-              final displayUrl = provider.displayImageUrl;
-              return Stack(
-                children: [
-                  // Start Over button
-                  Positioned(
-                    top: AppSpacing.lg,
-                    left: AppSpacing.lg,
-                    child: GlassContainer.light(
-                      child: LiquidButton.secondary(
-                        text: '↺ Start Over',
-                        onPressed: provider.isLoading
-                            ? null
-                            : () {
-                                provider.startOver();
-                                Navigator.maybePop(context);
-                              },
-                      ),
-                    ),
-                  ),
+        );
+      },
+    );
+  }
+}
 
-                  // Center image view
-                  Positioned.fill(
-                    child: Padding(
-                      padding: const EdgeInsets.all(AppSpacing.lg),
-                      child: Center(
-                        child: AspectRatio(
-                          aspectRatio: 2 / 3,
-                          child: Stack(
-                            children: [
-                              GlassContainer.light(
-                                child: Container(
-                                  clipBehavior: Clip.antiAlias,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  child: displayUrl != null
-                                      ? _ImageFromDataUrl(url: displayUrl)
-                                      : _PlaceholderLoading(
-                                          message: 'Loading Model...',
-                                        ),
-                                ),
-                              ),
+class _CanvasViewport extends StatelessWidget {
+  const _CanvasViewport({
+    required this.provider,
+    required this.displayUrl,
+    required this.highContrast,
+  });
 
-                              // Loading overlay
-                              if (provider.isLoading)
-                                Positioned.fill(
-                                  child: GlassContainer.strong(
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        const SizedBox(height: AppSpacing.md),
-                                        const CircularProgressIndicator(),
-                                        if (provider
-                                            .loadingMessage
-                                            .isNotEmpty) ...[
-                                          const SizedBox(height: AppSpacing.md),
-                                          Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: AppSpacing.md,
-                                            ),
-                                            child: Text(
-                                              provider.loadingMessage,
-                                              style: AppTypography.bodyMedium
-                                                  .copyWith(
-                                                    color:
-                                                        AppColors.textPrimary,
-                                                  ),
-                                              textAlign: TextAlign.center,
-                                            ),
-                                          ),
-                                        ],
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+  final FitCheckProvider provider;
+  final String? displayUrl;
+  final bool highContrast;
 
-                  // Pose controls (bottom center)
-                  if (displayUrl != null && !provider.isLoading)
-                    Positioned(
-                      bottom: AppSpacing.xl,
-                      left: 0,
-                      right: 0,
-                      child: Center(child: _PoseControls()),
-                    ),
-                ],
-              );
-            },
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        GlassContainer.light(
+          child: Container(
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(16)),
+            child: displayUrl != null
+                ? _ImageFromDataUrl(url: displayUrl!)
+                : const _PlaceholderLoading(message: 'Loading Model...'),
           ),
         ),
-      ),
+        if (provider.isLoading)
+          Positioned.fill(
+            child: GlassContainer.strong(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(height: AppSpacing.md),
+                  const CircularProgressIndicator(),
+                  if (provider.loadingMessage.isNotEmpty) ...[
+                    const SizedBox(height: AppSpacing.md),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md,
+                      ),
+                      child: Text(
+                        provider.loadingMessage,
+                        style: AppTypography.bodyMedium.copyWith(
+                          color: highContrast
+                              ? Colors.white
+                              : AppColors.textPrimary,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+      ],
     );
   }
 }
 
 class _ImageFromDataUrl extends StatelessWidget {
-  final String url;
   const _ImageFromDataUrl({required this.url});
+
+  final String url;
 
   @override
   Widget build(BuildContext context) {
@@ -154,8 +151,9 @@ class _ImageFromDataUrl extends StatelessWidget {
 }
 
 class _PlaceholderLoading extends StatelessWidget {
-  final String message;
   const _PlaceholderLoading({required this.message});
+
+  final String message;
 
   @override
   Widget build(BuildContext context) {
@@ -179,6 +177,10 @@ class _PlaceholderLoading extends StatelessWidget {
 }
 
 class _PoseControls extends StatelessWidget {
+  const _PoseControls({required this.highContrast});
+
+  final bool highContrast;
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<FitCheckProvider>();
@@ -221,6 +223,8 @@ class _PoseControls extends StatelessWidget {
       }
     }
 
+    final Color textColor = highContrast ? Colors.white : AppColors.textPrimary;
+
     return GlassContainer.strong(
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -235,7 +239,7 @@ class _PoseControls extends StatelessWidget {
             child: Text(
               poseList[currentIndex],
               style: AppTypography.bodyMedium.copyWith(
-                color: AppColors.textPrimary,
+                color: textColor,
                 fontWeight: FontWeight.w600,
               ),
               textAlign: TextAlign.center,

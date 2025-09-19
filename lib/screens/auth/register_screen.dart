@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/navigation_provider.dart';
+import '../../core/router/app_router.dart';
 import '../../services/login_preferences_service.dart';
 import '../../utils/validators.dart';
 import '../../design_system/design_tokens.dart';
@@ -97,7 +99,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _showSnackBar(
           'Account created successfully! Please check your email for verification.',
         );
-        Navigator.pushReplacementNamed(context, '/profile-setup');
+        context.read<NavigationProvider>().replace(AppRouter.profileSetup);
       } else if (mounted) {
         _showSnackBar(
           authProvider.errorMessage ?? 'Registration failed',
@@ -529,7 +531,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
           style: AppTextStyles.bodyMedium.copyWith(color: AppColors.neutral600),
         ),
         GestureDetector(
-          onTap: () => Navigator.pushReplacementNamed(context, '/login'),
+          onTap: () =>
+              context.read<NavigationProvider>().replace(AppRouter.login),
           child: Text(
             'Sign In',
             style: AppTextStyles.bodyMedium.copyWith(

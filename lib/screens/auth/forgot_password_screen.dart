@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/navigation_provider.dart';
+import '../../core/router/app_router.dart';
 import '../../utils/validators.dart';
 import '../../design_system/design_tokens.dart';
 import '../../services/login_preferences_service.dart';
-import 'login_screen.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -259,10 +260,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
           // Back to login
           TextButton(
-            onPressed: () => Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const LoginScreen()),
-            ),
+            onPressed: () =>
+                context.read<NavigationProvider>().replace(AppRouter.login),
             child: RichText(
               text: TextSpan(
                 style: AppTextStyles.bodyMedium.copyWith(
@@ -352,10 +351,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
         // Back to login
         TextButton(
-          onPressed: () => Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const LoginScreen()),
-          ),
+          onPressed: () =>
+              context.read<NavigationProvider>().replace(AppRouter.login),
           child: Text(
             'Back to Sign In',
             style: AppTextStyles.bodyMedium.copyWith(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/router/app_router.dart';
+import '../../providers/navigation_provider.dart';
 import '../../design_system/design_tokens.dart';
 import '../../providers/personalization_provider.dart';
 
@@ -81,7 +82,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     if (_currentPage < _pages.length - 1) {
       _pageController.nextPage(duration: duration, curve: curve);
     } else {
-      Navigator.pushReplacementNamed(context, AppRouter.login);
+      context.read<NavigationProvider>().replace(AppRouter.login);
       widget.onComplete?.call();
     }
   }
@@ -186,7 +187,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
           GestureDetector(
             onTap: () {
-              Navigator.pushReplacementNamed(context, AppRouter.login);
+              context.read<NavigationProvider>().replace(AppRouter.login);
               widget.onComplete?.call();
             },
             child: Container(

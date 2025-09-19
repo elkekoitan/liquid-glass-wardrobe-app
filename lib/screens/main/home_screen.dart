@@ -7,6 +7,7 @@ import '../../design_system/design_tokens.dart';
 import '../../models/capsule_model.dart';
 import '../../providers/personalization_provider.dart';
 import '../../services/capsule_service.dart';
+import '../../providers/navigation_provider.dart';
 import '../../widgets/glass_button.dart';
 import '../../widgets/glass_container.dart';
 
@@ -215,7 +216,9 @@ class _HomeScreenState extends State<HomeScreen>
                 title: 'Try On',
                 subtitle: 'Upload & try clothes',
                 onTap: () {
-                  Navigator.pushNamed(context, AppRouter.photoUpload);
+                  context.read<NavigationProvider>().push(
+                    AppRouter.photoUpload,
+                  );
                 },
               ),
             ),
@@ -226,7 +229,7 @@ class _HomeScreenState extends State<HomeScreen>
                 title: 'Capsules',
                 subtitle: 'Browse daily moods',
                 onTap: () {
-                  Navigator.pushNamed(context, AppRouter.capsules);
+                  context.read<NavigationProvider>().push(AppRouter.capsules);
                 },
               ),
             ),
@@ -243,7 +246,9 @@ class _HomeScreenState extends State<HomeScreen>
                 title: 'Personalize',
                 subtitle: 'Comfort & motion',
                 onTap: () {
-                  Navigator.pushNamed(context, AppRouter.personalization);
+                  context.read<NavigationProvider>().push(
+                    AppRouter.personalization,
+                  );
                 },
               ),
             ),
@@ -254,7 +259,9 @@ class _HomeScreenState extends State<HomeScreen>
                 title: 'OTP Flow',
                 subtitle: 'Enter secure digits',
                 onTap: () {
-                  Navigator.pushNamed(context, AppRouter.otpVerification);
+                  context.read<NavigationProvider>().push(
+                    AppRouter.otpVerification,
+                  );
                 },
               ),
             ),
@@ -409,8 +416,9 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                     const SizedBox(height: DesignTokens.spaceL),
                     GlassButton(
-                      onPressed: () =>
-                          Navigator.pushNamed(context, AppRouter.capsules),
+                      onPressed: () => context.read<NavigationProvider>().push(
+                        AppRouter.capsules,
+                      ),
                       child: const Text('Open Capsule Gallery'),
                     ),
                   ],
@@ -504,8 +512,9 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                   const SizedBox(height: DesignTokens.spaceL),
                   GlassButton(
-                    onPressed: () =>
-                        Navigator.pushNamed(context, AppRouter.capsules),
+                    onPressed: () => context.read<NavigationProvider>().push(
+                      AppRouter.capsules,
+                    ),
                     child: const Text('Explore Capsules'),
                   ),
                 ],

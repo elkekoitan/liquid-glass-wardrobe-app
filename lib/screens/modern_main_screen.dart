@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
 import '../design_system/design_tokens.dart';
 import '../design_system/components/fashion_components.dart';
 
 import '../widgets/modern_navigation.dart';
 import '../core/router/app_router.dart';
+import '../providers/navigation_provider.dart';
 
 class ModernMainScreen extends StatefulWidget {
   const ModernMainScreen({super.key});
@@ -103,7 +106,9 @@ class _ModernMainScreenState extends State<ModernMainScreen>
                 backgroundColor: AppColors.neutral900,
                 foregroundColor: AppColors.neutralWhite,
                 onPressed: () {
-                  Navigator.pushNamed(context, AppRouter.photoUpload);
+                  context.read<NavigationProvider>().push(
+                    AppRouter.photoUpload,
+                  );
                 },
                 child: const Icon(Icons.add_a_photo),
               ),
@@ -208,8 +213,7 @@ class HomeTab extends StatelessWidget {
                             label: 'Virtual Try-On',
                             backgroundColor: AppColors.neutral900,
                             onPressed: () {
-                              Navigator.pushNamed(
-                                context,
+                              context.read<NavigationProvider>().push(
                                 AppRouter.photoUpload,
                               );
                             },
@@ -430,7 +434,7 @@ class TryOnTab extends StatelessWidget {
             const SizedBox(height: DesignTokens.spaceXXL),
             ElevatedButton.icon(
               onPressed: () {
-                Navigator.pushNamed(context, AppRouter.photoUpload);
+                context.read<NavigationProvider>().push(AppRouter.photoUpload);
               },
               icon: const Icon(Icons.upload),
               label: const Text('Upload Photo'),
