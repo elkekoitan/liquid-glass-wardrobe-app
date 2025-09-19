@@ -471,8 +471,11 @@ class PoseSelectionPanel extends StatelessWidget {
                               onTap: (isLoading || isCurrentPose)
                                   ? null
                                   : () {
-                                      session.requestPoseChange(index).then((success) {
-                                        if (success && session.errorSurface == null) {
+                                      session.requestPoseChange(index).then((
+                                        success,
+                                      ) {
+                                        if (success &&
+                                            session.errorSurface == null) {
                                           onClose?.call();
                                         }
                                       });

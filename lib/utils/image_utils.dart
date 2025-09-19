@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
@@ -80,6 +81,15 @@ class ImageUtils {
     } catch (e) {
       throw Exception('Failed to convert file to data URL: ${e.toString()}');
     }
+  }
+
+  /// Convert a base64 data URL into raw bytes.
+  static Uint8List dataUrlToBytes(String dataUrl) {
+    final parts = dataUrl.split(',');
+    if (parts.length != 2) {
+      throw FormatException('Invalid data URL format');
+    }
+    return base64Decode(parts[1]);
   }
 
   /// Convert base64 data URL to File

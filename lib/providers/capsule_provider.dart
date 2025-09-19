@@ -35,20 +35,8 @@ class CapsuleProvider extends ChangeNotifier {
       if (_capsules.isEmpty) {
         _selected = null;
       } else {
-        final initialId = _initialSelectionId;
-        if (initialId != null) {
-          _selected = _capsules.firstWhere(
-            (capsule) => capsule.id == initialId,
-            orElse: () => _selected ?? _capsules.first,
-          );
-        } else if (_selected != null) {
-          _selected = _capsules.firstWhere(
-            (capsule) => capsule.id == _selected!.id,
-            orElse: () => _capsules.first,
-          );
-        } else {
-          _selected = _capsules.first;
-        }
+        final String? preferredId = _initialSelectionId ?? _selected?.id;
+        _selected = _pickSelectable(preferredId);
       }
     } catch (e) {
       _error = e.toString();
@@ -59,15 +47,33 @@ class CapsuleProvider extends ChangeNotifier {
   }
 
   void selectCapsule(String id) {
-    final candidate = _capsules.firstWhere(
-      (capsule) => capsule.id == id,
-      orElse: () =>
-          _selected ??
-          (_capsules.isNotEmpty
-              ? _capsules.first
-              : throw StateError('No capsules available')),
-    );
-    _selected = candidate;
+    final capsule = _pickSelectable(id);
+    if (capsule == null) {
+      return;
+    }
+    _selected = capsule;
     notifyListeners();
+  }
+
+  CapsuleModel? _pickSelectable(String? preferredId) {
+    if (_capsules.isEmpty) {
+      return null;
+    }
+
+    if (preferredId != null) {
+      for (final capsule in _capsules) {
+        if (capsule.id == preferredId && capsule.isSelectable) {
+          return capsule;
+        }
+      }
+    }
+
+    for (final capsule in _capsules) {
+      if (capsule.isSelectable) {
+        return capsule;
+      }
+    }
+
+    return _capsules.first;
   }
 }

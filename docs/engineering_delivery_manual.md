@@ -96,6 +96,13 @@ assets/
 - Debug toggle prints events in dev builds; gating ensures no PII captured.
 - Dashboards (Looker) pull from Segment; QA harness validates events in staging before release.
 
+### 7.1 Try-On Session Lifecycle
+- `TryOnSessionProvider` owns the Gemini pipeline state machine. Upload flows (`StartScreen`, onboarding quick start, modern photo upload) MUST call `prepareModelImage` so analytics and error surfaces stay centralized.
+- Stage transitions: `uploading` (local file validation), `processingModel` (Gemini model generation via `FitCheckProvider.processModelImage`), `ready` (model cached in provider), `failed` (Gemini or transport exception). UI should observe `session.isBusy`, `session.statusLabel`, and `session.errorSurface` for messaging.
+- Emit analytics when: session starts (`try_on_session_start` with source + personalization flags), model completes (`try_on_session_ready` with processing duration), and failures (`try_on_session_error` with `error_code`, `error_surface`). Wire through `AnalyticsService` in the provider to keep payload normalization.
+- Reset semantics: call `TryOnSessionProvider.clearError()` when onboarding/login opens, and `FitCheckProvider.startOver()` (plus `clearError`) when the user retakes a photo. This keeps sessions idempotent across navigation.
+- Manual QA checklist: validate happy path and failure surfaces on emulator (Android API 34) and at least one desktop target before tagging Script 2.3 complete. Capture screenshots if the error surface copy changes.
+
 ## 8. Security & Resilience
 - OTP network layer via `dio` with retries (max 3) and exponential backoff.
 - Ensure transport encryption, minimal logging (mask OTP digits).

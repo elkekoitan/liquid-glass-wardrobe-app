@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/router/app_router.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/app_colors.dart';
 import '../../models/capsule_model.dart';
 import '../../providers/capsule_provider.dart';
 import '../../providers/personalization_provider.dart';
@@ -218,6 +219,18 @@ class _SelectedCapsuleCard extends StatelessWidget {
       (prefs) => prefs.highContrast,
     );
     final gradient = _buildGradient(capsule.colorway);
+    final CapsulePersonalization personalization = capsule.personalization;
+    final Set<String> recommendedIds = personalization.recommendedWardrobeIds
+        .toSet();
+    final List<String> wardrobeLinks = <String>[
+      ...capsule.wardrobeItemIds,
+      ...personalization.recommendedWardrobeIds.where(
+        (id) => !capsule.wardrobeItemIds.contains(id),
+      ),
+    ];
+    final bool hasWardrobeLinks = wardrobeLinks.isNotEmpty;
+    final bool canActivate = !isDefault && onActivate != null;
+
     final Color descriptionColor = highContrast
         ? Colors.white.withValues(alpha: 0.9)
         : Colors.white70;
@@ -244,7 +257,42 @@ class _SelectedCapsuleCard extends StatelessWidget {
     final Color glassBorderColor = highContrast
         ? Colors.white.withValues(alpha: 0.2)
         : Colors.white.withValues(alpha: 0.15);
-    final bool canActivate = !isDefault && onActivate != null;
+
+    Color availabilityBackground;
+    Color availabilityText;
+    IconData availabilityIcon;
+    switch (capsule.availability) {
+      case CapsuleAvailability.live:
+        availabilityBackground = AppColors.success.withValues(alpha: 0.25);
+        availabilityText = Colors.white;
+        availabilityIcon = Icons.radio_button_checked;
+        break;
+      case CapsuleAvailability.scheduled:
+        availabilityBackground = AppColors.warning.withValues(alpha: 0.25);
+        availabilityText = Colors.white;
+        availabilityIcon = Icons.schedule;
+        break;
+      case CapsuleAvailability.archived:
+        availabilityBackground = Colors.black.withValues(alpha: 0.35);
+        availabilityText = Colors.white70;
+        availabilityIcon = Icons.inventory_2_outlined;
+        break;
+    }
+
+    final bool showsReducedMotion = personalization.supportsReducedMotion;
+    final bool showsHighContrast = personalization.supportsHighContrast;
+    final String rawIntent = personalization.primaryIntent.trim();
+    final bool showsPrimaryIntent = rawIntent.isNotEmpty;
+    final String formattedIntent = rawIntent
+        .replaceAll(RegExp('[_-]+'), ' ')
+        .split(' ')
+        .where((segment) => segment.isNotEmpty)
+        .map(
+          (segment) =>
+              segment.substring(0, 1).toUpperCase() +
+              segment.substring(1).toLowerCase(),
+        )
+        .join(' ');
 
     return GlassContainer(
       padding: const EdgeInsets.all(AppSpacing.cardPadding),
@@ -288,25 +336,32 @@ class _SelectedCapsuleCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (isDefault)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.sm,
-                            vertical: AppSpacing.xs,
-                          ),
-                          decoration: BoxDecoration(
-                            color: statusBackground,
-                            borderRadius: BorderRadius.circular(24),
-                          ),
-                          child: Text(
-                            'Default Capsule',
-                            style: TextStyle(
-                              color: statusText,
-                              fontWeight: FontWeight.w600,
+                      Wrap(
+                        spacing: AppSpacing.sm,
+                        runSpacing: AppSpacing.xs,
+                        children: [
+                          if (isDefault)
+                            _CapsuleStatusChip(
+                              label: 'Default Capsule',
+                              background: statusBackground,
+                              textColor: statusText,
+                              icon: Icons.push_pin,
                             ),
+                          _CapsuleStatusChip(
+                            label: capsule.availability.label,
+                            background: availabilityBackground,
+                            textColor: availabilityText,
+                            icon: availabilityIcon,
                           ),
-                        ),
-                      if (isDefault) const SizedBox(height: AppSpacing.sm),
+                          _CapsuleStatusChip(
+                            label: capsule.type.toUpperCase(),
+                            background: Colors.black.withValues(alpha: 0.35),
+                            textColor: Colors.white70,
+                            icon: Icons.category_outlined,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
                       Text(
                         capsule.name,
                         style: Theme.of(context).textTheme.headlineSmall
@@ -326,6 +381,7 @@ class _SelectedCapsuleCard extends StatelessWidget {
                       const SizedBox(height: AppSpacing.lg),
                       Wrap(
                         spacing: AppSpacing.sm,
+                        runSpacing: AppSpacing.xs,
                         children: capsule.tags
                             .map(
                               (tag) => Chip(
@@ -334,14 +390,64 @@ class _SelectedCapsuleCard extends StatelessWidget {
                                 labelStyle: TextStyle(color: chipText),
                               ),
                             )
-                            .toList(),
+                            .toList(growable: false),
                       ),
+                      if (showsPrimaryIntent ||
+                          showsReducedMotion ||
+                          showsHighContrast)
+                        Padding(
+                          padding: const EdgeInsets.only(top: AppSpacing.md),
+                          child: Wrap(
+                            spacing: AppSpacing.sm,
+                            runSpacing: AppSpacing.xs,
+                            children: [
+                              if (showsPrimaryIntent)
+                                _CapsuleFeatureChip(
+                                  icon: Icons.auto_awesome,
+                                  label: formattedIntent,
+                                ),
+                              if (showsReducedMotion)
+                                const _CapsuleFeatureChip(
+                                  icon: Icons.motion_photos_off,
+                                  label: 'Reduced motion ready',
+                                ),
+                              if (showsHighContrast)
+                                const _CapsuleFeatureChip(
+                                  icon: Icons.contrast,
+                                  label: 'High contrast ready',
+                                ),
+                            ],
+                          ),
+                        ),
                     ],
                   ),
                 ),
               ],
             ),
           ),
+          if (hasWardrobeLinks) ...[
+            const SizedBox(height: AppSpacing.xxl),
+            Text(
+              'Linked Wardrobe',
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Wrap(
+              spacing: AppSpacing.sm,
+              runSpacing: AppSpacing.xs,
+              children: wardrobeLinks
+                  .map(
+                    (id) => _WardrobeLinkChip(
+                      label: id,
+                      highlighted: recommendedIds.contains(id),
+                    ),
+                  )
+                  .toList(growable: false),
+            ),
+          ],
           const SizedBox(height: AppSpacing.xxl),
           Row(
             children: [
@@ -396,6 +502,138 @@ class _SelectedCapsuleCard extends StatelessWidget {
       colors: parsedColors,
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
+    );
+  }
+}
+
+class _CapsuleStatusChip extends StatelessWidget {
+  const _CapsuleStatusChip({
+    required this.label,
+    required this.background,
+    required this.textColor,
+    this.icon,
+  });
+
+  final String label;
+  final Color background;
+  final Color textColor;
+  final IconData? icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 14, color: textColor),
+            const SizedBox(width: 4),
+          ],
+          Text(
+            label,
+            style: TextStyle(
+              color: textColor,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.4,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CapsuleFeatureChip extends StatelessWidget {
+  const _CapsuleFeatureChip({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.2),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: Colors.white70),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white70,
+              fontWeight: FontWeight.w500,
+              letterSpacing: 0.2,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WardrobeLinkChip extends StatelessWidget {
+  const _WardrobeLinkChip({required this.label, required this.highlighted});
+
+  final String label;
+  final bool highlighted;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color textColor = highlighted ? Colors.white : Colors.white70;
+    final Color background = highlighted
+        ? AppColors.primary.withValues(alpha: 0.25)
+        : Colors.black.withValues(alpha: 0.25);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: highlighted
+              ? AppColors.primary.withValues(alpha: 0.7)
+              : Colors.white.withValues(alpha: 0.2),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            highlighted ? Icons.star : Icons.hub,
+            size: 14,
+            color: textColor,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(color: textColor, fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
     );
   }
 }

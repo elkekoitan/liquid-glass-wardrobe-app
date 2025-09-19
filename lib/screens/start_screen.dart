@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/fit_check_provider.dart';
+import '../providers/try_on_session_provider.dart';
 import '../utils/image_utils.dart';
 import 'package:image_picker/image_picker.dart' as picker;
 
@@ -63,14 +64,13 @@ class _StartScreenState extends State<StartScreen> {
         _showComparison = true;
       });
 
-      // Process with AI
-      final provider = context.read<FitCheckProvider>();
-      await provider.processModelImage(croppedFile);
+      final session = context.read<TryOnSessionProvider>();
+      session.clearError();
+      final success = await session.prepareModelImage(croppedFile);
 
       if (!mounted) return;
 
-      // Show success and proceed button after processing
-      if (provider.error == null) {
+      if (success) {
         _showSuccessDialog();
       }
     } catch (e) {
@@ -295,6 +295,7 @@ class _StartScreenState extends State<StartScreen> {
 
     final provider = context.read<FitCheckProvider>();
     provider.startOver();
+    context.read<TryOnSessionProvider>().clearError();
   }
 
   @override
@@ -315,8 +316,8 @@ class _StartScreenState extends State<StartScreen> {
 
     return PersonalizedScaffold(
       padding: const EdgeInsets.all(DesignTokens.spaceL),
-      body: Consumer<FitCheckProvider>(
-        builder: (context, provider, child) {
+      body: Consumer2<FitCheckProvider, TryOnSessionProvider>(
+        builder: (context, fitCheck, session, child) {
           return AnimatedSwitcher(
             duration: switchDuration,
             transitionBuilder: reducedMotion
@@ -337,7 +338,7 @@ class _StartScreenState extends State<StartScreen> {
                     );
                   },
             child: _showComparison
-                ? _buildComparisonView(provider, highContrast)
+                ? _buildComparisonView(fitCheck, session, highContrast)
                 : _buildWelcomeView(highContrast),
           );
         },
@@ -561,26 +562,41 @@ class _StartScreenState extends State<StartScreen> {
     );
   }
 
-  Widget _buildComparisonView(FitCheckProvider provider, bool highContrast) {
-    final String statusTitle = provider.isLoading
+  Widget _buildComparisonView(
+    FitCheckProvider provider,
+    TryOnSessionProvider session,
+    bool highContrast,
+  ) {
+    final bool isProcessing = session.isBusy;
+    final bool hasError = session.hasError;
+    final bool isReady =
+        session.stage == TryOnSessionStage.ready &&
+        provider.displayImageUrl != null &&
+        _userImageUrl != null;
+
+    final String statusTitle = isProcessing
         ? 'Processing Model'
-        : provider.error != null
+        : hasError
         ? 'Please Try Again'
         : 'Model Ready';
-    final String statusSubtitle = provider.isLoading
-        ? 'We are creating your virtual avatar.'
-        : provider.error != null
-        ? 'Adjust your photo or network connection and retry.'
+    final String statusSubtitle = isProcessing
+        ? session.statusLabel
+        : hasError
+        ? (session.errorSurface?.message ??
+              provider.error ??
+              'Adjust your photo or network connection and retry.')
         : 'Review the preview or continue to styling.';
     final Color panelSurface = highContrast
         ? AppColors.neutral900
         : AppColors.neutralWhite;
-    final TextStyle statusCopy = AppTextStyles.bodyLarge.copyWith(
-      color: highContrast ? AppColors.neutral200 : AppColors.neutral700,
-    );
     final Color borderBase = highContrast
         ? AppColors.primaryMain.withValues(alpha: 0.3)
         : AppColors.primaryMain.withValues(alpha: 0.2);
+    final IconData statusIcon = isProcessing
+        ? Icons.auto_mode_rounded
+        : hasError
+        ? Icons.error_outline
+        : Icons.check_circle_outline;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -596,15 +612,7 @@ class _StartScreenState extends State<StartScreen> {
                   : AppColors.primaryMain.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(DesignTokens.radiusRound),
             ),
-            child: Icon(
-              provider.isLoading
-                  ? Icons.auto_mode_rounded
-                  : (provider.error != null
-                        ? Icons.error_outline
-                        : Icons.check_circle_outline),
-              color: AppColors.neutralWhite,
-              size: 20,
-            ),
+            child: Icon(statusIcon, color: AppColors.neutralWhite, size: 20),
           ),
         ),
         const SizedBox(height: DesignTokens.spaceXL),
@@ -620,7 +628,7 @@ class _StartScreenState extends State<StartScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (provider.isLoading) ...[
+                  if (isProcessing) ...[
                     Container(
                       width: 320,
                       height: 450,
@@ -665,7 +673,7 @@ class _StartScreenState extends State<StartScreen> {
                               horizontal: DesignTokens.spaceXL,
                             ),
                             child: Text(
-                              provider.loadingMessage,
+                              session.statusLabel,
                               style: AppTextStyles.bodyMedium.copyWith(
                                 color: highContrast
                                     ? AppColors.neutral200
@@ -677,7 +685,7 @@ class _StartScreenState extends State<StartScreen> {
                         ],
                       ),
                     ),
-                  ] else if (provider.error != null) ...[
+                  ] else if (hasError) ...[
                     Container(
                       width: 320,
                       height: 450,
@@ -724,7 +732,9 @@ class _StartScreenState extends State<StartScreen> {
                               horizontal: DesignTokens.spaceXL,
                             ),
                             child: Text(
-                              provider.error!,
+                              session.errorSurface?.message ??
+                                  provider.error ??
+                                  'Something went wrong. Please try again.',
                               style: AppTextStyles.bodyMedium.copyWith(
                                 color: highContrast
                                     ? AppColors.neutral200
@@ -736,8 +746,7 @@ class _StartScreenState extends State<StartScreen> {
                         ],
                       ),
                     ),
-                  ] else if (provider.displayImageUrl != null &&
-                      _userImageUrl != null) ...[
+                  ] else if (isReady) ...[
                     Container(
                       width: 320,
                       height: 450,
@@ -759,31 +768,25 @@ class _StartScreenState extends State<StartScreen> {
                         child: Stack(
                           children: [
                             Image.memory(
-                              Uri.parse(
-                                provider.displayImageUrl!,
-                              ).data!.contentAsBytes(),
+                              ImageUtils.dataUrlToBytes(_userImageUrl!),
                               fit: BoxFit.cover,
                               width: double.infinity,
                               height: double.infinity,
                             ),
-                            Positioned(
-                              top: DesignTokens.spaceM,
-                              right: DesignTokens.spaceM,
+                            Positioned.fill(
+                              left: 12,
+                              right: 12,
                               child: Container(
-                                padding: const EdgeInsets.all(
-                                  DesignTokens.spaceS,
-                                ),
                                 decoration: BoxDecoration(
-                                  color: AppColors.success,
                                   borderRadius: BorderRadius.circular(
-                                    DesignTokens.radiusRound,
+                                    DesignTokens.radiusL - 6,
                                   ),
-                                  boxShadow: AppShadows.md,
-                                ),
-                                child: const Icon(
-                                  Icons.check,
-                                  color: AppColors.neutralWhite,
-                                  size: 16,
+                                  border: Border.all(
+                                    color: AppColors.neutralWhite.withValues(
+                                      alpha: 0.3,
+                                    ),
+                                    width: 1,
+                                  ),
                                 ),
                               ),
                             ),
@@ -791,57 +794,82 @@ class _StartScreenState extends State<StartScreen> {
                         ),
                       ),
                     ),
+                    const SizedBox(height: DesignTokens.spaceXL),
+                    Container(
+                      width: 320,
+                      height: 450,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(
+                          DesignTokens.radiusL,
+                        ),
+                        color: highContrast
+                            ? AppColors.neutral900
+                            : AppColors.neutralWhite,
+                        border: Border.all(
+                          color: AppColors.primaryMain.withValues(alpha: 0.3),
+                          width: 2,
+                        ),
+                        boxShadow: AppShadows.md,
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(
+                          DesignTokens.radiusL - 2,
+                        ),
+                        child: provider.displayImageUrl != null
+                            ? Image.network(
+                                provider.displayImageUrl!,
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                height: double.infinity,
+                              )
+                            : const SizedBox.shrink(),
+                      ),
+                    ),
                   ] else ...[
-                    Text(
-                      'Upload a photo to begin your transformation.',
-                      style: statusCopy,
-                      textAlign: TextAlign.center,
+                    Padding(
+                      padding: const EdgeInsets.all(DesignTokens.spaceXL),
+                      child: Text(
+                        'Your photo is ready. Continue when you are!',
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          color: highContrast
+                              ? AppColors.neutral200
+                              : AppColors.neutral700,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                   ],
+                  const SizedBox(height: DesignTokens.spaceXL),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ModernButton(
+                          text: 'Retake Photo',
+                          variant: ModernButtonVariant.secondary,
+                          onPressed: isProcessing ? null : _resetImage,
+                          leadingIcon: Icons.refresh,
+                          isExpanded: true,
+                        ),
+                      ),
+                      const SizedBox(width: DesignTokens.spaceM),
+                      Expanded(
+                        child: ModernButton(
+                          text: 'Proceed',
+                          variant: ModernButtonVariant.primary,
+                          onPressed: (!isProcessing && !hasError && isReady)
+                              ? widget.onModelFinalized
+                              : null,
+                          trailingIcon: Icons.arrow_forward,
+                          isExpanded: true,
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
           ),
         ),
-        const SizedBox(height: DesignTokens.spaceXL),
-        if (provider.error != null) ...[
-          ModernButton(
-            text: 'Try Again',
-            leadingIcon: Icons.refresh,
-            variant: ModernButtonVariant.secondary,
-            size: ModernButtonSize.large,
-            isExpanded: true,
-            onPressed: _resetImage,
-          ),
-        ] else if (!provider.isLoading && provider.displayImageUrl != null) ...[
-          Row(
-            children: [
-              Expanded(
-                flex: 2,
-                child: ModernButton(
-                  text: 'Different Photo',
-                  leadingIcon: Icons.photo_camera_back,
-                  variant: ModernButtonVariant.secondary,
-                  size: ModernButtonSize.medium,
-                  onPressed: _resetImage,
-                ),
-              ),
-              const SizedBox(width: DesignTokens.spaceM),
-              Expanded(
-                flex: 3,
-                child: ModernButton(
-                  text: 'Start Styling',
-                  trailingIcon: Icons.arrow_forward,
-                  variant: ModernButtonVariant.success,
-                  size: ModernButtonSize.medium,
-                  onPressed: () {
-                    widget.onModelFinalized?.call();
-                  },
-                ),
-              ),
-            ],
-          ),
-        ],
       ],
     );
   }

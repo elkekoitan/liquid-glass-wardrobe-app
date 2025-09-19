@@ -482,7 +482,6 @@ class _OtpCard extends StatelessWidget {
                         onTap: () =>
                             FocusScope.of(context).requestFocus(focusNode),
                         child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: List.generate(OtpProvider.codeLength, (
                             index,
                           ) {
@@ -491,11 +490,18 @@ class _OtpCard extends StatelessWidget {
                                 !provider.isSuccess &&
                                 !provider.hasError &&
                                 provider.code.length == index;
-                            return _OtpDigitCell(
-                              digit: digit,
-                              isActive: isActive,
-                              hasError: provider.hasError,
-                              reducedMotion: reducedMotion,
+                            return Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: AppSpacing.xxs,
+                                ),
+                                child: _OtpDigitCell(
+                                  digit: digit,
+                                  isActive: isActive,
+                                  hasError: provider.hasError,
+                                  reducedMotion: reducedMotion,
+                                ),
+                              ),
                             );
                           }),
                         ),
@@ -635,38 +641,49 @@ class _OtpDigitCell extends StatelessWidget {
   Widget build(BuildContext context) {
     final displayDigit = digit.isEmpty ? '' : digit;
 
-    return AnimatedContainer(
-      duration: Duration(milliseconds: reducedMotion ? 0 : 200),
-      width: 60,
-      height: 72,
-      decoration: BoxDecoration(
-        color: hasError
-            ? AppColors.errorGlass.withValues(alpha: 0.8)
-            : Colors.white.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: hasError
-              ? Colors.redAccent.withValues(alpha: 0.8)
-              : isActive
-              ? AppColors.liquidCyan
-              : Colors.white24,
-          width: isActive ? 2 : 1,
+    return Align(
+      alignment: Alignment.center,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(
+          maxWidth: 64,
+          minHeight: 48,
+          maxHeight: 88,
         ),
-        boxShadow: [
-          if (isActive)
-            BoxShadow(
-              color: AppColors.liquidCyan.withValues(alpha: 0.35),
-              blurRadius: 16,
-              spreadRadius: 1,
+        child: AspectRatio(
+          aspectRatio: 5 / 6,
+          child: AnimatedContainer(
+            duration: Duration(milliseconds: reducedMotion ? 0 : 200),
+            decoration: BoxDecoration(
+              color: hasError
+                  ? AppColors.errorGlass.withValues(alpha: 0.8)
+                  : Colors.white.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: hasError
+                    ? Colors.redAccent.withValues(alpha: 0.8)
+                    : isActive
+                    ? AppColors.liquidCyan
+                    : Colors.white24,
+                width: isActive ? 2 : 1,
+              ),
+              boxShadow: [
+                if (isActive)
+                  BoxShadow(
+                    color: AppColors.liquidCyan.withValues(alpha: 0.35),
+                    blurRadius: 16,
+                    spreadRadius: 1,
+                  ),
+              ],
             ),
-        ],
-      ),
-      child: Center(
-        child: Text(
-          displayDigit,
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
+            child: Center(
+              child: Text(
+                displayDigit,
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
           ),
         ),
       ),

@@ -1,4 +1,4 @@
-# FitCheck Project Management Playbook
+ï»¿# FitCheck Project Management Playbook
 
 ## Project Overview
 
@@ -12,13 +12,11 @@
 
 ## Current Snapshot (2025-09-19)
 
-- Completed: authentication flows unified under `AuthProvider`, personalization toggles respected across login, OTP, and home; repository contributor guide (`AGENTS.md`) refreshed; secondary flows and shared components now route via `NavigationProvider` with analytics hooks.
+- Completed: Scripts 2.2A-2.2B delivered; NavigationProvider guards and analytics instrumentation shipped; Trend Pulse routing/provider wiring and home spotlight landed; StartScreen now rides TryOnSessionProvider with OTP viewport fixes.
+- In progress: Script 3.1 - wardrobe and capsule metadata now lands across models, services, and UI with tests; Script 2.3 documentation and onboarding/start adoption still queued for close-out.
+- Risks: Gemini key rotation remains manual; TryOnSessionProvider adoption incomplete across entry screens; wardrobe metadata sync relies on manual seed updates; shader performance on low-end hardware untested; Trend Pulse feed depends on asset hosting stability.
+- Next checkpoint: Finish TryOnSessionProvider onboarding migration with coverage, then smoke the new wardrobe/capsule chips before promoting Script 3.1 follow-on flows.
 
-- In progress: shared personalized scaffold deployed to start, canvas, and main screens; navigation now centralized via `NavigationProvider` with auth/profile/personalization guards; capsule carousel replaced with reusable picker.
-
-- Risks: Gemini API key management still manual; shader performance unverified on low-end hardware; Firebase config awaiting production credentials.
-
-- Next checkpoint: close Scripts 2.2A–2.2B, then kick off Script 2.3 (Gemini try-on foundation).
 
 ## Roadmap Phases
 
@@ -42,59 +40,47 @@
 
 Work through the scripts sequentially; do not skip ahead without completing deliverables and validations.
 
-1. Script 2.2A – Main Screens Layout Harmonization **(Complete)**
+1. Script 2.2A - Main Screens Layout Harmonization **(Complete)**
 
-2. Script 2.2B – Navigation & Context Orchestration **(In Progress)**
+2. Script 2.2B - Navigation & Context Orchestration **(Complete)**
 
-3. Script 2.3 – Virtual Try-On Foundation
+3. Script 2.3 - Virtual Try-On Foundation **(In Progress)**
 
-4. Script 3.1 – Wardrobe & Capsule Experience Baseline
+4. Script 3.1 - Wardrobe & Capsule Experience Baseline
 
-5. Script 4.0 – Backend & Data Contracts
+5. Script 4.0 - Backend & Data Contracts
 
-6. Script 5.0 – Quality, Analytics, & Accessibility
+6. Script 5.0 - Quality, Analytics, & Accessibility
 
-7. Script 6.0 – Deployment & Launch Readiness
+7. Script 6.0 - Deployment & Launch Readiness
 
 ## Task Scripts
 
-### Script 2.2A – Main Screens Layout Harmonization *(Complete)*
+### Script 2.2A - Main Screens Layout Harmonization *(Complete)*
 
 **Goal**: Align the start, home, and canvas flows with the modern liquid-glass layout and personalization defaults.  
 
 **Status Update**: Shared `PersonalizedScaffold`, `MainSectionHeader`, `TryOnActionRail`, and `CapsuleQuickPicker` integrated into start, canvas, main, and capsule screens; smoke test covers personalization transitions.  
 
-### Script 2.2B – Navigation & Context Orchestration *(In Progress)*
+### Script 2.2B - Navigation & Context Orchestration *(Complete)*
 
 **Goal**: Rationalize navigation flows and ensure state hand-off between onboarding, auth, and main surfaces.  
+**Status Update**: NavigationProvider now owns auth/profile/personalization guards, analytics logging, and deep-link instrumentation; MaterialApp, onboarding, auth, and main surfaces route through shared helpers; smoke and provider tests updated.  
+**Follow-up**:
+1. Execute the deep-link regression plan after Script 2.3 stabilizes the Gemini session wiring.
 
-**Status Update**: Introduced `NavigationProvider` with auth/profile/personalization guards; MaterialApp now routes through the guarded navigator key; onboarding, auth, and main surfaces consume coordinated navigation helpers; secondary flows (start, canvas, photo upload, wardrobe, OTP) now pop via the provider; analytics/deep-link hooks fire on every route resolution.
 
-**Remaining**:
-
-1. Document navigation helper + analytics patterns in `docs/engineering_delivery_manual.md`.
-
-2. Add regression coverage for deep-link entry once Script 2.3 scaffolding lands.
-
-### Script 2.3 – Virtual Try-On Foundation *(Pending)*
+### Script 2.3 - Virtual Try-On Foundation *(In Progress)*
 
 **Goal**: Stand up the Gemini AI pipeline and canvas interaction loop.  
-
-1. Expand `lib/services/gemini_service.dart` with async methods for pose generation, garment blending, and error surfaces; define request/response models in `lib/models/`.  
-
-2. Add configuration keys to `.env.example` (for example `GEMINI_VTO_MODEL`, `GEMINI_TIMEOUT`) and ensure `FitCheckProvider.initializeGeminiService` reads them.  
-
-3. Create a session orchestrator (`lib/providers/try_on_session_provider.dart`) to manage upload state, progress indicators, and personalization fallbacks.  
-
-4. Integrate the orchestrator into `lib/screens/canvas_screen.dart` and `lib/screens/photo_upload/modern_photo_upload_screen.dart`, surfacing intermediate states (queued, processing, failed).  
-
-5. Write service tests with mocks under `test/services/gemini_service_test.dart` plus widget tests covering canvas state transitions.  
-
-6. Document API error handling in `docs/engineering_delivery_manual.md` and update this playbook with any new risks.
+**Status Update**: GeminiService configuration, typed request/response models, and TryOnSessionProvider are in place; canvas and modern photo upload screens surface session progress with deterministic service tests in `test/services/gemini_service_test.dart`. Trend Pulse provider now ships in the global tree with a home screen spotlight for daily content validation.  
+**Remaining**:
+1. Archive emulator QA evidence (screenshots/notes) for Trend Pulse spotlight + OTP flow after the layout fix (Android API 34 run completed).
 
 **Deliverables**: Gemini service API, session provider, stateful canvas, updated env template, automated tests.
 
-### Script 3.1 – Wardrobe & Capsule Experience Baseline *(Pending)*
+
+### Script 3.1 - Wardrobe & Capsule Experience Baseline *(In Progress)*
 
 **Goal**: Deliver a minimal but functional wardrobe and capsule management loop.  
 
@@ -112,7 +98,7 @@ Work through the scripts sequentially; do not skip ahead without completing deli
 
 **Deliverables**: Updated models, offline-ready services, enhanced widgets, tests, doc updates.
 
-### Script 4.0 – Backend & Data Contracts *(Pending)*
+### Script 4.0 - Backend & Data Contracts *(Pending)*
 
 **Goal**: Connect the app to Firebase and remote services with reliable error handling.  
 
@@ -128,7 +114,7 @@ Work through the scripts sequentially; do not skip ahead without completing deli
 
 6. Record data contract decisions in `docs/engineering_delivery_manual.md` and update the risk register here.
 
-### Script 5.0 – Quality, Analytics, & Accessibility *(Pending)*
+### Script 5.0 - Quality, Analytics, & Accessibility *(Pending)*
 
 **Goal**: Raise quality gates ahead of advanced feature work.  
 
@@ -146,7 +132,7 @@ Work through the scripts sequentially; do not skip ahead without completing deli
 
 **Deliverables**: Updated lint rules, golden tests, analytics events, accessibility report, coverage data.
 
-### Script 6.0 – Deployment & Launch Readiness *(Pending)*
+### Script 6.0 - Deployment & Launch Readiness *(Pending)*
 
 **Goal**: Automate release flows and prepare store collateral.  
 
@@ -184,21 +170,24 @@ Work through the scripts sequentially; do not skip ahead without completing deli
 
 ## Reference Artifacts
 
-- `AGENTS.md` – contributor playbook.
+- `AGENTS.md` - contributor playbook.
 
-- `FIREBASE_SETUP.md` – environment bootstrap details.
+- `FIREBASE_SETUP.md` - environment bootstrap details.
 
-- `docs/engineering_delivery_manual.md` – deep architecture guidance.
+- `docs/engineering_delivery_manual.md` - deep architecture guidance.
 
-- `create_assets.py` – automation for asset ingestion.
+- `create_assets.py` - automation for asset ingestion.
 
-- `.env.example` – source of truth for configuration keys.
+- `.env.example` - source of truth for configuration keys.
 
 ---
 
-**Last Updated**: 2025-09-19T13:20:00Z  
+**Last Updated**: 2025-09-19T18:30:00Z  
 
-**Current Phase**: Phase 2 – Core Application Features  
+**Current Phase**: Phase 2 - Core Application Features  
 
-**Next Milestone**: Complete Script 2.2B (navigation alignment) and start Script 2.3 (Gemini try-on foundation).
+**Next Milestone**: Close Script 2.3 onboarding migration and validate the new wardrobe/capsule metadata set to unlock follow-on Script 3.1 flows. 
+
+
+
 

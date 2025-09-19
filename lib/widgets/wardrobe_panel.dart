@@ -405,101 +405,275 @@ class _WardrobeItemTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: (isLoading || isActive) ? null : onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isActive ? AppColors.success : AppColors.surfaceVariant,
-            width: isActive ? 3 : 1,
-          ),
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(11),
-          child: Stack(
-            children: [
-              // Image
-              SizedBox(
-                width: double.infinity,
-                height: double.infinity,
-                child: item.url.startsWith('data:')
-                    ? Image.memory(
-                        Uri.parse(item.url).data!.contentAsBytes(),
-                        fit: BoxFit.cover,
-                      )
-                    : Image.network(
-                        item.url,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            color: AppColors.surfaceVariant.withValues(
-                              alpha: 0.3,
-                            ),
-                            child: Icon(
-                              Icons.broken_image,
-                              color: AppColors.textTertiary,
-                            ),
-                          );
-                        },
-                      ),
-              ),
+    final bool isSelectable = item.isSelectable;
+    final bool disableTap = isLoading || isActive || !isSelectable;
+    final WardrobeAvailability availability = item.availability;
 
-              // Overlay
-              Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.transparent,
-                      Colors.black.withValues(alpha: 0.7),
+    Color borderColor;
+    if (isActive) {
+      borderColor = AppColors.success;
+    } else if (!isSelectable) {
+      borderColor = AppColors.textTertiary.withValues(alpha: 0.4);
+    } else {
+      borderColor = AppColors.surfaceVariant;
+    }
+
+    return Semantics(
+      label: ' ',
+      enabled: isSelectable,
+      hint: isSelectable ? 'Double tap to try on ' : ' item',
+      child: GestureDetector(
+        onTap: disableTap ? null : onTap,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: borderColor, width: isActive ? 3 : 1),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(11),
+            child: Stack(
+              children: [
+                SizedBox(
+                  width: double.infinity,
+                  height: double.infinity,
+                  child: item.url.startsWith('data:')
+                      ? Image.memory(
+                          Uri.parse(item.url).data!.contentAsBytes(),
+                          fit: BoxFit.cover,
+                        )
+                      : Image.network(
+                          item.url,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              color: AppColors.surfaceVariant.withValues(
+                                alpha: 0.3,
+                              ),
+                              child: Icon(
+                                Icons.broken_image,
+                                color: AppColors.textTertiary,
+                              ),
+                            );
+                          },
+                        ),
+                ),
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withValues(alpha: 0.7),
+                      ],
+                    ),
+                  ),
+                ),
+                if (item.tags.isNotEmpty)
+                  Positioned(
+                    top: AppSpacing.xs,
+                    left: AppSpacing.xs,
+                    right: AppSpacing.xs,
+                    child: Wrap(
+                      spacing: 4,
+                      runSpacing: 4,
+                      children: item.tags
+                          .take(2)
+                          .map((tag) => _WardrobeTagPill(label: tag))
+                          .toList(growable: false),
+                    ),
+                  ),
+                Positioned(
+                  top: AppSpacing.xs,
+                  right: AppSpacing.xs,
+                  child: _AvailabilityBadge(availability: availability),
+                ),
+                Positioned(
+                  bottom: AppSpacing.md,
+                  left: AppSpacing.xs,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (item.personalization.supportsColorSwap)
+                        const _WardrobeMetaIcon(
+                          icon: Icons.palette_outlined,
+                          tooltip: 'Supports colour swaps',
+                        ),
+                      if (item.personalization.supportsLayering)
+                        const _WardrobeMetaIcon(
+                          icon: Icons.layers_outlined,
+                          tooltip: 'Layer friendly',
+                        ),
                     ],
                   ),
                 ),
-              ),
-
-              // Item name
-              Positioned(
-                bottom: AppSpacing.xs,
-                left: AppSpacing.xs,
-                right: AppSpacing.xs,
-                child: Text(
-                  item.name,
-                  style: AppTypography.bodyExtraSmall.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+                if (item.personalization.primaryCapsuleId.isNotEmpty)
+                  Positioned(
+                    bottom: AppSpacing.md,
+                    right: AppSpacing.xs,
+                    child: _WardrobeTagPill(
+                      label: item.personalization.primaryCapsuleId,
+                      emphasized: true,
+                    ),
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-
-              // Active indicator
-              if (isActive)
-                Positioned.fill(
-                  child: Container(
-                    color: AppColors.success.withValues(alpha: 0.8),
-                    child: const Icon(
-                      Icons.check_circle,
+                Positioned(
+                  bottom: AppSpacing.xs,
+                  left: AppSpacing.xs,
+                  right: AppSpacing.xs,
+                  child: Text(
+                    item.name,
+                    style: AppTypography.bodyExtraSmall.copyWith(
                       color: Colors.white,
-                      size: 32,
+                      fontWeight: FontWeight.bold,
                     ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-
-              // Loading overlay
-              if (isLoading)
-                Positioned.fill(
-                  child: Container(
-                    color: Colors.black.withValues(alpha: 0.5),
-                    child: const Center(
-                      child: CircularProgressIndicator(color: Colors.white),
+                if (!isSelectable)
+                  Positioned.fill(
+                    child: Container(
+                      color: Colors.black.withValues(alpha: 0.6),
+                      alignment: Alignment.center,
+                      child: Text(
+                        availability.label,
+                        style: AppTypography.bodyMedium.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-            ],
+                if (isActive)
+                  Positioned.fill(
+                    child: Container(
+                      color: AppColors.success.withValues(alpha: 0.8),
+                      child: const Icon(
+                        Icons.check_circle,
+                        color: Colors.white,
+                        size: 32,
+                      ),
+                    ),
+                  ),
+                if (isLoading)
+                  Positioned.fill(
+                    child: Container(
+                      color: Colors.black.withValues(alpha: 0.5),
+                      child: const Center(
+                        child: CircularProgressIndicator(color: Colors.white),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _WardrobeTagPill extends StatelessWidget {
+  const _WardrobeTagPill({required this.label, this.emphasized = false});
+
+  final String label;
+  final bool emphasized;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color background = emphasized
+        ? AppColors.primary.withValues(alpha: 0.2)
+        : Colors.black.withValues(alpha: 0.35);
+    final Color border = emphasized
+        ? AppColors.primary
+        : Colors.white.withValues(alpha: 0.4);
+    final Color textColor = emphasized
+        ? AppColors.primary
+        : Colors.white.withValues(alpha: 0.8);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.xs,
+        vertical: 4,
+      ),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: border, width: 1),
+      ),
+      child: Text(
+        label.toUpperCase(),
+        style: AppTypography.bodyExtraSmall.copyWith(
+          color: textColor,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.6,
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
+  }
+}
+
+class _WardrobeMetaIcon extends StatelessWidget {
+  const _WardrobeMetaIcon({required this.icon, required this.tooltip});
+
+  final IconData icon;
+  final String tooltip;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: AppSpacing.xs),
+      child: Tooltip(
+        message: tooltip,
+        child: Icon(icon, size: 16, color: Colors.white.withValues(alpha: 0.9)),
+      ),
+    );
+  }
+}
+
+class _AvailabilityBadge extends StatelessWidget {
+  const _AvailabilityBadge({required this.availability});
+
+  final WardrobeAvailability availability;
+
+  @override
+  Widget build(BuildContext context) {
+    Color background;
+    Color border;
+
+    switch (availability) {
+      case WardrobeAvailability.available:
+        background = AppColors.success.withValues(alpha: 0.15);
+        border = AppColors.success.withValues(alpha: 0.8);
+        break;
+      case WardrobeAvailability.limited:
+        background = AppColors.warning.withValues(alpha: 0.15);
+        border = AppColors.warning.withValues(alpha: 0.8);
+        break;
+      case WardrobeAvailability.archived:
+        background = Colors.black.withValues(alpha: 0.4);
+        border = Colors.white.withValues(alpha: 0.2);
+        break;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.xs,
+        vertical: 4,
+      ),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: border, width: 1),
+      ),
+      child: Text(
+        availability.label.toUpperCase(),
+        style: AppTypography.bodyExtraSmall.copyWith(
+          color: Colors.white,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.8,
         ),
       ),
     );

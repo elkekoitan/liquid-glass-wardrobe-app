@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/router/app_router.dart';
 import '../../providers/navigation_provider.dart';
+import '../../providers/try_on_session_provider.dart';
 import '../../design_system/design_tokens.dart';
 import '../../providers/personalization_provider.dart';
 
@@ -22,6 +23,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final List<OnboardingData> _pages = [
     OnboardingData(
       title: 'Virtual\nFitting Room',
+
       subtitle:
           'Try on thousands of designer pieces with photorealistic precision. See exactly how clothes will fit and look before you buy.',
       iconPath: 'assets/images/onboarding/fitting_room.svg',
@@ -54,6 +56,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       ],
     ),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<TryOnSessionProvider>().clearError();
+    });
+  }
 
   @override
   void dispose() {

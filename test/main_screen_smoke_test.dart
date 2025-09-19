@@ -7,6 +7,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:fitcheck_app/design_system/design_tokens.dart' as ds;
 import 'package:fitcheck_app/providers/fit_check_provider.dart';
 import 'package:fitcheck_app/providers/personalization_provider.dart';
+import 'package:fitcheck_app/providers/try_on_session_provider.dart';
+import 'package:fitcheck_app/services/gemini_service.dart';
 import 'package:fitcheck_app/screens/main_app_screen.dart';
 
 void main() {
@@ -27,6 +29,23 @@ void main() {
           providers: [
             ChangeNotifierProvider.value(value: personalization),
             ChangeNotifierProvider(create: (_) => FitCheckProvider()),
+            ChangeNotifierProxyProvider2<
+              FitCheckProvider,
+              PersonalizationProvider,
+              TryOnSessionProvider
+            >(
+              create: (_) => TryOnSessionProvider(),
+              update: (_, fitCheck, personalization, session) {
+                final coordinator = session ?? TryOnSessionProvider();
+                coordinator.updateDependencies(
+                  fitCheck: fitCheck,
+                  personalization: personalization,
+                  apiKey: dotenv.env['GEMINI_API_KEY'],
+                  config: GeminiServiceConfig.fromEnv(dotenv.env),
+                );
+                return coordinator;
+              },
+            ),
           ],
           child: const MaterialApp(home: MainAppScreen()),
         ),

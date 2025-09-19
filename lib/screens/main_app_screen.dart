@@ -96,11 +96,16 @@ class _MainAppScreenState extends State<MainAppScreen> {
         children: [
           MainSectionHeader(
             title: 'Your Virtual Studio',
-            subtitle: sessionError ?? provider.error ?? 'Adjust outfits, colors, and poses.',
+            subtitle:
+                sessionError ??
+                provider.error ??
+                'Adjust outfits, colors, and poses.',
             actions: [
               IconButton(
                 tooltip: 'Change pose',
-                onPressed: (isSessionBusy || session.hasError) ? null : _showPosePanel,
+                onPressed: (isSessionBusy || session.hasError)
+                    ? null
+                    : _showPosePanel,
                 icon: const Icon(Icons.accessibility_new),
               ),
             ],

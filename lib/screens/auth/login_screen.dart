@@ -5,6 +5,7 @@ import '../../design_system/design_tokens.dart';
 
 import '../../services/login_preferences_service.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/try_on_session_provider.dart';
 import '../../providers/navigation_provider.dart';
 import '../../core/router/app_router.dart';
 import '../../core/services/error_service.dart';
@@ -47,6 +48,10 @@ class _LoginScreenState extends State<LoginScreen> {
   void initState() {
     super.initState();
     _loadSavedCredentials();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<TryOnSessionProvider>().clearError();
+    });
   }
 
   void _fillTestCredentials() {

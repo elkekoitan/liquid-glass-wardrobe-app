@@ -232,6 +232,11 @@ class _OutfitLayerTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final WardrobeItem? garment = layer.garment;
+    final WardrobeAvailability? availability = garment?.availability;
+    final WardrobePersonalization? personalization = garment?.personalization;
+    final List<String> tags = garment?.tags ?? const <String>[];
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -250,7 +255,6 @@ class _OutfitLayerTile extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Layer number badge
             Container(
               width: 32,
               height: 32,
@@ -262,7 +266,7 @@ class _OutfitLayerTile extends StatelessWidget {
               ),
               child: Center(
                 child: Text(
-                  '$layerNumber',
+                  '',
                   style: AppTypography.bodySmall.copyWith(
                     color: isCurrentLayer
                         ? Colors.white
@@ -272,11 +276,8 @@ class _OutfitLayerTile extends StatelessWidget {
                 ),
               ),
             ),
-
             const SizedBox(width: AppSpacing.sm),
-
-            // Garment thumbnail (if available)
-            if (layer.garment != null && layer.garment!.url.isNotEmpty) ...[
+            if (garment != null && garment.url.isNotEmpty) ...[
               Container(
                 width: 48,
                 height: 48,
@@ -286,9 +287,9 @@ class _OutfitLayerTile extends StatelessWidget {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: layer.garment!.url.startsWith('data:')
+                  child: garment.url.startsWith('data:')
                       ? Image.memory(
-                          Uri.parse(layer.garment!.url).data!.contentAsBytes(),
+                          Uri.parse(garment.url).data!.contentAsBytes(),
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
                             return Icon(
@@ -299,7 +300,7 @@ class _OutfitLayerTile extends StatelessWidget {
                           },
                         )
                       : Image.network(
-                          layer.garment!.url,
+                          garment.url,
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
                             return Icon(
@@ -313,14 +314,12 @@ class _OutfitLayerTile extends StatelessWidget {
               ),
               const SizedBox(width: AppSpacing.sm),
             ],
-
-            // Layer info
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    layer.garment?.name ?? 'Base Model',
+                    garment?.name ?? 'Base Model',
                     style: AppTypography.bodyMedium.copyWith(
                       color: AppColors.textPrimary,
                       fontWeight: FontWeight.w600,
@@ -328,26 +327,62 @@ class _OutfitLayerTile extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  if (layer.garment != null) ...[
+                  if (garment != null) ...[
                     const SizedBox(height: 2),
                     Text(
-                      '${layer.availablePoses.length} pose${layer.availablePoses.length > 1 ? 's' : ''}',
+                      ' pose',
                       style: AppTypography.bodySmall.copyWith(
                         color: AppColors.textSecondary,
                       ),
                     ),
+                    if (availability != null) ...[
+                      const SizedBox(height: 2),
+                      _AvailabilityChip(availability: availability),
+                    ],
+                    if (tags.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Wrap(
+                        spacing: 4,
+                        runSpacing: 2,
+                        children: tags
+                            .take(3)
+                            .map((tag) => _LayerTagChip(label: tag))
+                            .toList(growable: false),
+                      ),
+                    ],
+                    if (personalization != null) ...[
+                      const SizedBox(height: 4),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 4,
+                        children: [
+                          if (personalization.supportsColorSwap)
+                            const _LayerMetaIcon(
+                              icon: Icons.palette_outlined,
+                              label: 'Colour swaps',
+                            ),
+                          if (personalization.supportsLayering)
+                            const _LayerMetaIcon(
+                              icon: Icons.layers_outlined,
+                              label: 'Layering',
+                            ),
+                          if (personalization.primaryCapsuleId.isNotEmpty)
+                            _LayerMetaIcon(
+                              icon: Icons.style_outlined,
+                              label: personalization.primaryCapsuleId,
+                            ),
+                        ],
+                      ),
+                    ],
                   ],
                 ],
               ),
             ),
-
-            // Action buttons (only for top layer)
             if (isTopLayer) ...[
               const SizedBox(width: AppSpacing.sm),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Color change button
                   if (onColorChange != null)
                     IconButton(
                       onPressed: onColorChange,
@@ -360,8 +395,6 @@ class _OutfitLayerTile extends StatelessWidget {
                       padding: const EdgeInsets.all(8),
                       constraints: const BoxConstraints(),
                     ),
-
-                  // Remove button
                   if (onRemove != null)
                     IconButton(
                       onPressed: onRemove,
@@ -377,13 +410,109 @@ class _OutfitLayerTile extends StatelessWidget {
                 ],
               ),
             ],
-
-            // Current layer indicator
             if (isCurrentLayer && !isTopLayer) ...[
               const SizedBox(width: AppSpacing.sm),
               Icon(Icons.visibility, color: AppColors.primary, size: 20),
             ],
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LayerTagChip extends StatelessWidget {
+  const _LayerTagChip({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceVariant.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: AppColors.surfaceVariant.withValues(alpha: 0.4),
+          width: 1,
+        ),
+      ),
+      child: Text(
+        label,
+        style: AppTypography.bodyExtraSmall.copyWith(
+          color: AppColors.textSecondary,
+          fontWeight: FontWeight.w500,
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
+  }
+}
+
+class _LayerMetaIcon extends StatelessWidget {
+  const _LayerMetaIcon({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 14, color: AppColors.primary),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: AppTypography.bodyExtraSmall.copyWith(
+            color: AppColors.textSecondary,
+            fontWeight: FontWeight.w600,
+          ),
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
+    );
+  }
+}
+
+class _AvailabilityChip extends StatelessWidget {
+  const _AvailabilityChip({required this.availability});
+
+  final WardrobeAvailability availability;
+
+  @override
+  Widget build(BuildContext context) {
+    Color fill;
+    Color textColor;
+
+    switch (availability) {
+      case WardrobeAvailability.available:
+        fill = AppColors.success.withValues(alpha: 0.12);
+        textColor = AppColors.success;
+        break;
+      case WardrobeAvailability.limited:
+        fill = AppColors.warning.withValues(alpha: 0.12);
+        textColor = AppColors.warning;
+        break;
+      case WardrobeAvailability.archived:
+        fill = AppColors.surfaceVariant.withValues(alpha: 0.2);
+        textColor = AppColors.textTertiary;
+        break;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: fill,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        availability.label,
+        style: AppTypography.bodyExtraSmall.copyWith(
+          color: textColor,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );
