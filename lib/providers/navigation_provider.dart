@@ -102,6 +102,62 @@ class NavigationProvider extends ChangeNotifier {
     return navigatorKey.currentState?.canPop() ?? false;
   }
 
+
+
+  Future<void> _navigate({
+
+    required String action,
+
+    required String requestedRoute,
+
+    Object? arguments,
+
+    required bool fromDeepLink,
+
+    required Future<void> Function(NavigatorState navigator, RouteSettings resolved) executor,
+
+  }) async {
+
+    final navigator = navigatorKey.currentState;
+
+    if (navigator == null) return;
+
+
+
+    final resolved = resolveRoute(
+
+      RouteSettings(name: requestedRoute, arguments: arguments),
+
+      fromDeepLink: fromDeepLink,
+
+    );
+
+
+
+    await executor(navigator, resolved);
+
+    _currentRoute = resolved.name ?? _currentRoute;
+
+
+
+    _analytics.logEvent('navigation_' + action, parameters: {
+
+      'requested_route': requestedRoute,
+
+      'resolved_route': resolved.name,
+
+      'redirected': resolved.name != requestedRoute,
+
+      'from_deeplink': fromDeepLink,
+
+      'arguments_present': resolved.arguments != null,
+
+    });
+
+  }
+
+
+
   bool _requiresAuthentication(String name) {
     return !_publicRoutes.contains(name);
   }
