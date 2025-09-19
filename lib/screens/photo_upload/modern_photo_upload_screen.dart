@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart' as picker;
 import '../../design_system/design_tokens.dart';
 import '../../providers/fit_check_provider.dart';
+import '../../providers/navigation_provider.dart';
 import '../../utils/image_utils.dart';
 
 class ModernPhotoUploadScreen extends StatefulWidget {
@@ -135,11 +136,11 @@ class _ModernPhotoUploadScreenState extends State<ModernPhotoUploadScreen>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => _buildImageSourceBottomSheet(),
+      builder: (sheetContext) => _buildImageSourceBottomSheet(sheetContext),
     );
   }
 
-  Widget _buildImageSourceBottomSheet() {
+  Widget _buildImageSourceBottomSheet(BuildContext sheetContext) {
     return Container(
       padding: const EdgeInsets.all(DesignTokens.spaceXL),
       decoration: const BoxDecoration(
@@ -186,7 +187,7 @@ class _ModernPhotoUploadScreenState extends State<ModernPhotoUploadScreen>
           // Camera option
           GestureDetector(
             onTap: () {
-              Navigator.pop(context);
+              sheetContext.read<NavigationProvider>().pop();
               _pickImage(picker.ImageSource.camera);
             },
             child: Container(
@@ -246,7 +247,7 @@ class _ModernPhotoUploadScreenState extends State<ModernPhotoUploadScreen>
           // Gallery option
           GestureDetector(
             onTap: () {
-              Navigator.pop(context);
+              sheetContext.read<NavigationProvider>().pop();
               _pickImage(picker.ImageSource.gallery);
             },
             child: Container(
@@ -332,47 +333,49 @@ class _ModernPhotoUploadScreenState extends State<ModernPhotoUploadScreen>
   }
 
   Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.all(DesignTokens.spaceL),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: Container(
-              padding: const EdgeInsets.all(DesignTokens.spaceS),
-              decoration: BoxDecoration(
-                color: AppColors.neutral200,
-                borderRadius: BorderRadius.circular(DesignTokens.radiusRound),
-              ),
-              child: Icon(
-                Icons.arrow_back_ios,
-                color: AppColors.neutral700,
-                size: 18,
+    return Builder(
+      builder: (headerContext) => Padding(
+        padding: const EdgeInsets.all(DesignTokens.spaceL),
+        child: Row(
+          children: [
+            GestureDetector(
+              onTap: () => headerContext.read<NavigationProvider>().maybePop(),
+              child: Container(
+                padding: const EdgeInsets.all(DesignTokens.spaceS),
+                decoration: BoxDecoration(
+                  color: AppColors.neutral200,
+                  borderRadius: BorderRadius.circular(DesignTokens.radiusRound),
+                ),
+                child: Icon(
+                  Icons.arrow_back_ios,
+                  color: AppColors.neutral700,
+                  size: 18,
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: DesignTokens.spaceM),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Virtual Fitting',
-                  style: AppTextStyles.headlineLarge.copyWith(
-                    color: AppColors.neutral900,
-                    fontWeight: FontWeight.w700,
+            const SizedBox(width: DesignTokens.spaceM),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Virtual Fitting',
+                    style: AppTextStyles.headlineLarge.copyWith(
+                      color: AppColors.neutral900,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                ),
-                Text(
-                  'AI-powered virtual try-on technology',
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.neutral600,
+                  Text(
+                    'AI-powered virtual try-on technology',
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: AppColors.neutral600,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

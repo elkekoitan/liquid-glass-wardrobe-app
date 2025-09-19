@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:provider/provider.dart';
 import '../design_system/design_tokens.dart';
+import '../providers/navigation_provider.dart';
 
 /// Modern Bottom Navigation Bar with Pinterest-style design
 class ModernBottomNavigation extends StatefulWidget {
@@ -366,7 +368,7 @@ class ModernAppBar extends StatelessWidget implements PreferredSizeWidget {
                 leading!
               else
                 GestureDetector(
-                  onTap: () => Navigator.pop(context),
+                  onTap: () => context.read<NavigationProvider>().maybePop(),
                   child: Container(
                     padding: const EdgeInsets.all(DesignTokens.spaceS),
                     decoration: BoxDecoration(
@@ -455,7 +457,7 @@ class SwipeBackDetector extends StatelessWidget {
           if (onSwipeBack != null) {
             onSwipeBack!.call();
           } else {
-            Navigator.pop(context);
+            context.read<NavigationProvider>().maybePop();
           }
         }
       },
@@ -467,11 +469,18 @@ class SwipeBackDetector extends StatelessWidget {
 /// Navigation Helper Functions
 class ModernNavigation {
   static void pushPage(BuildContext context, Widget page, {String? routeName}) {
-    Navigator.push(
-      context,
+    final navigation = context.read<NavigationProvider>();
+    final targetRoute = routeName ?? page.runtimeType.toString();
+    final resolved = navigation.resolveRoute(RouteSettings(name: targetRoute));
+    if (resolved.name != targetRoute) {
+      navigation.push(resolved.name!, arguments: resolved.arguments);
+      return;
+    }
+    final navigator = navigation.navigatorKey.currentState;
+    navigator?.push(
       ModernPageRoute(
         page: page,
-        routeName: routeName ?? page.runtimeType.toString(),
+        routeName: targetRoute,
       ),
     );
   }
@@ -481,16 +490,23 @@ class ModernNavigation {
     Widget page, {
     String? routeName,
   }) {
-    Navigator.pushReplacement(
-      context,
+    final navigation = context.read<NavigationProvider>();
+    final targetRoute = routeName ?? page.runtimeType.toString();
+    final resolved = navigation.resolveRoute(RouteSettings(name: targetRoute));
+    if (resolved.name != targetRoute) {
+      navigation.replace(resolved.name!, arguments: resolved.arguments);
+      return;
+    }
+    final navigator = navigation.navigatorKey.currentState;
+    navigator?.pushReplacement(
       ModernPageRoute(
         page: page,
-        routeName: routeName ?? page.runtimeType.toString(),
+        routeName: targetRoute,
       ),
     );
   }
 
   static void popToRoot(BuildContext context) {
-    Navigator.popUntil(context, (route) => route.isFirst);
+    context.read<NavigationProvider>().popToRoot();
   }
 }

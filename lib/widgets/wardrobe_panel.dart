@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../providers/fit_check_provider.dart';
+import '../providers/navigation_provider.dart';
 import '../models/models.dart';
 import '../utils/image_utils.dart';
 import '../core/theme/app_colors.dart';
@@ -110,7 +111,7 @@ class _WardrobePanelState extends State<WardrobePanel> {
   void _showImageSourceDialog() {
     showDialog(
       context: context,
-      builder: (context) => Dialog(
+      builder: (dialogContext) => Dialog(
         backgroundColor: Colors.transparent,
         child: GlassContainer.strong(
           child: Column(
@@ -127,7 +128,7 @@ class _WardrobePanelState extends State<WardrobePanel> {
               LiquidButton.primary(
                 text: '📷 Camera',
                 onPressed: () {
-                  Navigator.pop(context);
+                  dialogContext.read<NavigationProvider>().pop();
                   _pickFromCamera();
                 },
               ),
@@ -137,7 +138,7 @@ class _WardrobePanelState extends State<WardrobePanel> {
               LiquidButton.secondary(
                 text: '🖼️ Gallery',
                 onPressed: () {
-                  Navigator.pop(context);
+                  dialogContext.read<NavigationProvider>().pop();
                   _handleGarmentUpload();
                 },
               ),
@@ -145,7 +146,7 @@ class _WardrobePanelState extends State<WardrobePanel> {
               const SizedBox(height: AppSpacing.sm),
 
               TextButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => dialogContext.read<NavigationProvider>().pop(),
                 child: Text(
                   'Cancel',
                   style: AppTypography.bodyMedium.copyWith(

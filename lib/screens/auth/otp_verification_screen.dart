@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
-import '../../core/router/app_router.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../widgets/glass_button.dart';
@@ -12,6 +11,7 @@ import '../../widgets/glass_container.dart';
 import '../../providers/otp_provider.dart';
 import '../../models/capsule_model.dart';
 import '../../providers/personalization_provider.dart';
+import '../../providers/navigation_provider.dart';
 import '../../services/capsule_service.dart';
 
 class OtpVerificationScreen extends StatelessWidget {
@@ -334,7 +334,7 @@ class _OtpVerificationViewState extends State<_OtpVerificationView> {
                   trailing: method.id == provider.activeMethod.id
                       ? const Icon(Icons.check_circle, color: Colors.white)
                       : null,
-                  onTap: () => Navigator.of(sheetContext).pop(method.id),
+                  onTap: () => sheetContext.read<NavigationProvider>().pop(method.id),
                 ),
               ),
             ],
@@ -598,7 +598,7 @@ class _SuccessState extends StatelessWidget {
         GlassButton(
           width: double.infinity,
           onPressed: () {
-            Navigator.of(context).pushReplacementNamed(AppRouter.home);
+            context.read<NavigationProvider>().goHome();
           },
           child: const Padding(
             padding: EdgeInsets.symmetric(vertical: AppSpacing.md),

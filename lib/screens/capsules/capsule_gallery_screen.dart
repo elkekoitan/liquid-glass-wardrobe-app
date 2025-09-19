@@ -8,6 +8,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../models/capsule_model.dart';
 import '../../providers/capsule_provider.dart';
 import '../../providers/personalization_provider.dart';
+import '../../providers/navigation_provider.dart';
 import '../../widgets/glass_button.dart';
 import '../../widgets/glass_container.dart';
 import '../../widgets/layout/capsule_quick_picker.dart';
@@ -192,7 +193,7 @@ class _Header extends StatelessWidget {
         IconButton(
           icon: Icon(Icons.settings_outlined, color: iconColor),
           onPressed: () {
-            Navigator.of(context).pushNamed(AppRouter.personalization);
+            context.read<NavigationProvider>().push(AppRouter.personalization);
           },
         ),
       ],

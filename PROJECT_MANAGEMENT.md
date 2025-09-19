@@ -7,7 +7,7 @@
 - Coolify is the primary deployment target with AWS/GCP as contingency; CI/CD relies on GitHub Actions.
 
 ## Current Snapshot (2025-09-19)
-- Completed: authentication flows unified under `AuthProvider`, personalization toggles respected across login, OTP, and home.
+- Completed: authentication flows unified under `AuthProvider`, personalization toggles respected across login, OTP, and home; repository contributor guide (`AGENTS.md`) refreshed; secondary flows and shared components now route via `NavigationProvider`.
 - In progress: shared personalized scaffold deployed to start, canvas, and main screens; navigation now centralized via `NavigationProvider` with auth/profile/personalization guards; capsule carousel replaced with reusable picker.
 - Risks: Gemini API key management still manual; shader performance unverified on low-end hardware; Firebase config awaiting production credentials.
 - Next checkpoint: close Scripts 2.2A–2.2B, then kick off Script 2.3 (Gemini try-on foundation).
@@ -40,11 +40,11 @@ Work through the scripts sequentially; do not skip ahead without completing deli
 
 ### Script 2.2B – Navigation & Context Orchestration *(In Progress)*
 **Goal**: Rationalize navigation flows and ensure state hand-off between onboarding, auth, and main surfaces.  
-**Status Update**: Introduced `NavigationProvider` with auth/profile/personalization guards; MaterialApp now routes through guarded navigator key; onboarding, auth, and main surfaces consume coordinated navigation helpers; new unit tests exercise guard scenarios.
+**Status Update**: Introduced `NavigationProvider` with auth/profile/personalization guards; MaterialApp now routes through the guarded navigator key; onboarding, auth, and main surfaces consume coordinated navigation helpers; secondary flows (start, canvas, photo upload, wardrobe, OTP) now pop via the provider; new unit tests exercise guard scenarios.
 
 **Remaining**:
-1. Audit secondary flows (settings, capsules detail) for direct `Navigator` usage and migrate to `NavigationProvider` helpers.
-2. Add deep-link/event hooks for analytics once guard model proves stable.
+1. Add deep-link/event hooks for analytics once guard model proves stable.
+2. Document navigation helper patterns in engineering manual before starting 2.3.
 
 ### Script 2.3 – Virtual Try-On Foundation *(Pending)*
 **Goal**: Stand up the Gemini AI pipeline and canvas interaction loop.  
@@ -119,6 +119,6 @@ Work through the scripts sequentially; do not skip ahead without completing deli
 
 ---
 
-**Last Updated**: 2025-09-19T10:30:00Z  
+**Last Updated**: 2025-09-19T12:45:00Z  
 **Current Phase**: Phase 2 – Core Application Features  
 **Next Milestone**: Complete Script 2.2B (navigation alignment) and start Script 2.3 (Gemini try-on foundation).

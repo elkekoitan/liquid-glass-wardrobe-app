@@ -9,6 +9,7 @@ import '../core/theme/app_typography.dart';
 import '../core/theme/app_spacing.dart';
 import '../widgets/glass_container.dart';
 import '../widgets/liquid_button.dart';
+import '../providers/navigation_provider.dart';
 
 /// Canvas Screen - Main try-on viewer with pose controls
 class CanvasScreen extends StatelessWidget {
@@ -37,7 +38,7 @@ class CanvasScreen extends StatelessWidget {
                         ? null
                         : () {
                             provider.startOver();
-                            Navigator.maybePop(context);
+                            context.read<NavigationProvider>().maybePop();
                           },
                   ),
                 ),

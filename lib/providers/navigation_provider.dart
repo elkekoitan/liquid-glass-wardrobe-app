@@ -88,6 +88,20 @@ class NavigationProvider extends ChangeNotifier {
     navigatorKey.currentState?.popUntil((route) => route.isFirst);
   }
 
+  void pop<T extends Object?>([T? result]) {
+    navigatorKey.currentState?.pop<T>(result);
+  }
+
+  Future<bool> maybePop<T extends Object?>([T? result]) async {
+    final navigator = navigatorKey.currentState;
+    if (navigator == null) return false;
+    return navigator.maybePop<T>(result);
+  }
+
+  bool canPop() {
+    return navigatorKey.currentState?.canPop() ?? false;
+  }
+
   bool _requiresAuthentication(String name) {
     return !_publicRoutes.contains(name);
   }

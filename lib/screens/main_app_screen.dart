@@ -10,6 +10,7 @@ import '../widgets/layout/try_on_action_rail.dart';
 import '../widgets/layout/main_section_header.dart';
 import '../widgets/layout/capsule_quick_picker.dart';
 import '../providers/personalization_provider.dart';
+import '../providers/navigation_provider.dart';
 import '../providers/capsule_provider.dart';
 import '../core/theme/app_spacing.dart';
 
@@ -54,10 +55,10 @@ class _MainAppScreenState extends State<MainAppScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => ColorVariationPanel(
+      builder: (dialogContext) => ColorVariationPanel(
         layerIndex: layerIndex,
         garmentName: layer.garment!.name,
-        onClose: () => Navigator.of(context).pop(),
+        onClose: () => dialogContext.read<NavigationProvider>().pop(),
       ),
     );
   }
@@ -66,8 +67,8 @@ class _MainAppScreenState extends State<MainAppScreen> {
     showDialog(
       context: context,
       barrierDismissible: true,
-      builder: (context) =>
-          PoseSelectionPanel(onClose: () => Navigator.of(context).pop()),
+      builder: (dialogContext) =>
+          PoseSelectionPanel(onClose: () => dialogContext.read<NavigationProvider>().pop()),
     );
   }
 

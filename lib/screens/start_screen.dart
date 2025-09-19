@@ -9,6 +9,7 @@ import '../design_system/design_tokens.dart';
 import '../design_system/components/modern_button.dart';
 import '../widgets/layout/main_section_header.dart';
 import '../providers/personalization_provider.dart';
+import '../providers/navigation_provider.dart';
 import '../design_system/components/personalized_scaffold.dart';
 
 /// Start Screen - First screen for uploading model photo
@@ -80,7 +81,7 @@ class _StartScreenState extends State<StartScreen> {
   void _showImageSourceDialog() {
     showDialog(
       context: context,
-      builder: (context) => Dialog(
+      builder: (dialogContext) => Dialog(
         backgroundColor: AppColors.neutralWhite,
         child: Container(
           padding: const EdgeInsets.all(DesignTokens.spaceXL),
@@ -121,7 +122,7 @@ class _StartScreenState extends State<StartScreen> {
                 size: ModernButtonSize.large,
                 isExpanded: true,
                 onPressed: () {
-                  Navigator.pop(context);
+                  dialogContext.read<NavigationProvider>().pop();
                   _pickImage(picker.ImageSource.camera);
                 },
               ),
@@ -135,7 +136,7 @@ class _StartScreenState extends State<StartScreen> {
                 size: ModernButtonSize.large,
                 isExpanded: true,
                 onPressed: () {
-                  Navigator.pop(context);
+                  dialogContext.read<NavigationProvider>().pop();
                   _pickImage(picker.ImageSource.gallery);
                 },
               ),
@@ -145,7 +146,7 @@ class _StartScreenState extends State<StartScreen> {
               ModernButton(
                 text: 'Cancel',
                 variant: ModernButtonVariant.ghost,
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => dialogContext.read<NavigationProvider>().pop(),
               ),
             ],
           ),
@@ -157,7 +158,7 @@ class _StartScreenState extends State<StartScreen> {
   void _showErrorDialog(String message) {
     showDialog(
       context: context,
-      builder: (context) => Dialog(
+      builder: (dialogContext) => Dialog(
         backgroundColor: AppColors.neutralWhite,
         child: Container(
           padding: const EdgeInsets.all(DesignTokens.spaceXL),
@@ -207,7 +208,7 @@ class _StartScreenState extends State<StartScreen> {
                 variant: ModernButtonVariant.primary,
                 size: ModernButtonSize.medium,
                 isExpanded: true,
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => dialogContext.read<NavigationProvider>().pop(),
               ),
             ],
           ),
@@ -219,7 +220,7 @@ class _StartScreenState extends State<StartScreen> {
   void _showSuccessDialog() {
     showDialog(
       context: context,
-      builder: (context) => Dialog(
+      builder: (dialogContext) => Dialog(
         backgroundColor: AppColors.neutralWhite,
         child: Container(
           padding: const EdgeInsets.all(DesignTokens.spaceXXL),
@@ -275,7 +276,7 @@ class _StartScreenState extends State<StartScreen> {
                 size: ModernButtonSize.large,
                 isExpanded: true,
                 onPressed: () {
-                  Navigator.pop(context);
+                  dialogContext.read<NavigationProvider>().pop();
                   widget.onModelFinalized?.call();
                 },
               ),

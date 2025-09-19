@@ -1,23 +1,23 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-FitCheck is a Flutter app. Runtime code lives in `lib/` with focused submodules: `core/` for config, router, and shared services; `design_system/` for tokens and reusable glass components; `features/` for domain flows such as auth and home; `screens/`, `widgets/`, `providers/`, `services/`, and `models/` for layered UI, state, and integration code. Assets and shaders reside under `assets/` and `shaders/`, while tests live in `test/` mirroring the source folders.
+FitCheck is a Flutter app kept under `lib/`, split into `core/` (config, routing, shared services), `design_system/` (tokens and glass UI primitives), domain flows in `features/`, and presentation layers across `screens/`, `widgets/`, `providers/`, `services/`, `models/`, and `utils/`. Shared assets stay in `assets/` with shader programs in `shaders/`; generated artifacts belong under `build/`. Tests mirror the source tree inside `test/`, and process documentation lives in `docs/`, including delivery scripts and progress logs.
 
 ## Build, Test, and Development Commands
-- `flutter pub get` installs or refreshes dependencies.
-- `flutter analyze` enforces static analysis; keep the output clean.
-- `dart format lib test` (or `flutter format`) applies standard formatting.
-- `flutter test` executes unit and widget suites; add `--coverage` before publishing metrics.
-- `flutter run -d <device>` launches the app; use `--profile` when validating shader performance.
+- `flutter pub get` installs or syncs package dependencies.
+- `flutter analyze` runs static analysis; keep the output clean.
+- `dart format lib test` (or `flutter format`) applies the enforced style guide.
+- `flutter test` executes unit and widget suites; add `--coverage` when publishing metrics.
+- `flutter run -d <device>` launches the app locally; pair with `--profile` for shader tuning.
 
 ## Coding Style & Naming Conventions
-The repo extends `flutter_lints` via `analysis_options.yaml`; stick to two-space indentation, trailing commas on multi-line widgets, `const` constructors where practical, and avoid unused imports. Filenames use `snake_case.dart`; classes, enums, and extensions use `PascalCase`, while providers and services keep explicit suffixes (for example `AuthProvider`, `GeminiService`). Do not print secrets—log through the facilities in `lib/core/services/`.
+Indent with two spaces and prefer trailing commas on multiline widget trees to stabilise diffs. Files remain in `snake_case.dart`; types use `PascalCase`, while providers and services carry descriptive suffixes such as `AuthProvider` or `GeminiService`. Use `const` constructors when feasible, avoid raw `print`, and surface telemetry through helpers in `lib/core/services/`.
 
 ## Testing Guidelines
-Add or update tests in `test/`, matching the source path (`test/auth_provider_test.dart` mirrors `lib/providers/auth_provider.dart`). Cover new logic with unit tests and pair UI changes with widget or golden tests for glass components (see `docs/engineering_delivery_manual.md` scenarios). Keep existing tests green locally before pushing; investigate flakes immediately and supply fixtures or fakes when networking is involved.
+Extend coverage in `test/`, mirroring source paths (`test/navigation_provider_test.dart` pairs with `lib/providers/navigation_provider.dart`). Favour focused unit tests for business logic and widget or smoke tests for navigation flows (see `test/main_screen_smoke_test.dart`). Run `flutter test` before each push, stabilise asynchronous dependencies with fakes, and document notable gaps in the progress log.
 
 ## Commit & Pull Request Guidelines
-Follow Conventional Commits as shown in history (`feat:`, `fix:`, `chore:`). Keep subjects imperative and scoped to a single change. Pull requests must include a concise summary, local test evidence (`flutter test`), linked issue or task ID, and screenshots or recordings for UI updates. Document configuration adjustments (.env, Firebase, assets) and update `FIREBASE_SETUP.md` or `create_assets.py` instructions when behavior shifts.
+Follow Conventional Commits (`feat:`, `fix:`, `chore:`) with imperative subjects scoped to a single change. Summarise behaviour in PR descriptions, attach screenshots or recordings for UI updates, and note any Firebase or asset impacts. Confirm `flutter analyze` and `flutter test` outputs, and update collateral such as `FIREBASE_SETUP.md`, `pubspec.yaml`, or `create_assets.py` whenever configuration shifts.
 
-## Security & Configuration Tips
-Never commit real secrets; copy `.env.example` when onboarding and store keys securely. Follow `FIREBASE_SETUP.md` for authentication, storage, and Gemini AI setup. When introducing assets, respect the size budgets defined in `docs/engineering_delivery_manual.md`, register them in `pubspec.yaml`, and ensure accessibility variants are supplied where applicable.
+## Agent Workflow Notes
+Record milestones and blockers in `PROJECT_MANAGEMENT.md` and `docs/progress_log.md` so the next contributor inherits context. When scripts outline active tasks, reference their status explicitly and refresh checklists rather than duplicating them. Call out security or data-handling concerns early to keep the Gemini try-on pipeline reviewable.
