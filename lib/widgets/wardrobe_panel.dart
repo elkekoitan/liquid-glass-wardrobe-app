@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../providers/fit_check_provider.dart';
 import '../providers/navigation_provider.dart';
+import '../providers/try_on_session_provider.dart';
 import '../models/models.dart';
 import '../utils/image_utils.dart';
 import '../core/theme/app_colors.dart';
@@ -80,8 +81,9 @@ class _WardrobePanelState extends State<WardrobePanel> {
 
   Future<void> _handleGarmentSelect(WardrobeItem item) async {
     final provider = context.read<FitCheckProvider>();
+    final session = context.read<TryOnSessionProvider>();
 
-    if (provider.isLoading || provider.activeGarmentIds.contains(item.id)) {
+    if (session.isBusy || provider.activeGarmentIds.contains(item.id)) {
       return;
     }
 

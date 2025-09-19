@@ -8,6 +8,8 @@ import '../../models/capsule_model.dart';
 import '../../providers/personalization_provider.dart';
 import '../../services/capsule_service.dart';
 import '../../providers/navigation_provider.dart';
+import '../../providers/trend_pulse_provider.dart';
+import '../../features/trend_pulse/domain/trend_pulse_models.dart';
 import '../../widgets/glass_button.dart';
 import '../../widgets/glass_container.dart';
 
@@ -32,6 +34,14 @@ class _HomeScreenState extends State<HomeScreen>
       vsync: this,
     );
     _animationController.forward();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final TrendPulseProvider pulse = context.read<TrendPulseProvider>();
+      if (pulse.status == TrendPulseStatus.initial) {
+        pulse.load();
+      }
+    });
   }
 
   @override
@@ -71,6 +81,11 @@ class _HomeScreenState extends State<HomeScreen>
 
                 // Quick Actions
                 _buildQuickActions(),
+
+                const SizedBox(height: DesignTokens.spaceXL),
+
+                // Trend Pulse Spotlight
+                _buildTrendPulseSpotlight(),
 
                 const SizedBox(height: DesignTokens.spaceXL),
 
@@ -327,6 +342,439 @@ class _HomeScreenState extends State<HomeScreen>
         ),
       ),
     );
+  }
+
+  Widget _buildTrendPulseSpotlight() {
+    final personalization = context.watch<PersonalizationProvider>();
+    final TrendPulseProvider pulse = context.watch<TrendPulseProvider>();
+    final bool highContrast = personalization.highContrast;
+    final bool reducedMotion = personalization.reducedMotion;
+
+    final Color titleColor = highContrast
+        ? AppColors.neutralWhite
+        : AppColors.neutral900;
+    final Color bodyColor = highContrast
+        ? AppColors.neutral300
+        : AppColors.neutral600;
+    final Color borderColor = highContrast
+        ? Colors.white.withValues(alpha: 0.14)
+        : Colors.black.withValues(alpha: 0.06);
+
+    late final Widget card;
+
+    switch (pulse.status) {
+      case TrendPulseStatus.initial:
+      case TrendPulseStatus.loading:
+        card = GlassContainer(
+          padding: const EdgeInsets.all(DesignTokens.spaceL),
+          borderRadius: BorderRadius.circular(DesignTokens.radiusL),
+          borderColor: borderColor,
+          gradientColors: highContrast
+              ? [AppColors.neutral900, AppColors.neutral900]
+              : [AppColors.neutralWhite, Colors.white],
+          child: Row(
+            children: [
+              SizedBox(
+                width: 36,
+                height: 36,
+                child: CircularProgressIndicator(
+                  strokeWidth: 3,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    highContrast ? Colors.white : AppColors.neutral700,
+                  ),
+                ),
+              ),
+              const SizedBox(width: DesignTokens.spaceL),
+              Expanded(
+                child: Text(
+                  'Syncing Trend Pulse drops...',
+                  style: AppTextStyles.bodyMedium.copyWith(color: bodyColor),
+                ),
+              ),
+            ],
+          ),
+        );
+        break;
+      case TrendPulseStatus.error:
+        card = GlassContainer(
+          padding: const EdgeInsets.all(DesignTokens.spaceL),
+          borderRadius: BorderRadius.circular(DesignTokens.radiusL),
+          borderColor: borderColor,
+          gradientColors: highContrast
+              ? [AppColors.neutral900, AppColors.neutral900]
+              : [AppColors.neutralWhite, Colors.white],
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.wifi_off,
+                    color: highContrast ? Colors.white : AppColors.neutral700,
+                  ),
+                  const SizedBox(width: DesignTokens.spaceM),
+                  Expanded(
+                    child: Text(
+                      'Trend Pulse is offline right now.',
+                      style: AppTextStyles.titleSmall.copyWith(
+                        color: titleColor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: DesignTokens.spaceS),
+              Text(
+                pulse.error ?? 'Check your connection and try again.',
+                style: AppTextStyles.bodySmall.copyWith(color: bodyColor),
+              ),
+              const SizedBox(height: DesignTokens.spaceM),
+              GlassButton(
+                onPressed: () => pulse.load(refresh: true),
+                child: const Text('Retry sync'),
+              ),
+            ],
+          ),
+        );
+        break;
+      case TrendPulseStatus.ready:
+        final TrendDrop? drop = pulse.dailyDrop;
+        if (drop == null) {
+          card = GlassContainer(
+            padding: const EdgeInsets.all(DesignTokens.spaceL),
+            borderRadius: BorderRadius.circular(DesignTokens.radiusL),
+            borderColor: borderColor,
+            gradientColors: highContrast
+                ? [AppColors.neutral900, AppColors.neutral900]
+                : [AppColors.neutralWhite, Colors.white],
+            child: Text(
+              'Your Trend Pulse feed will refresh soon.',
+              style: AppTextStyles.bodyMedium.copyWith(color: bodyColor),
+            ),
+          );
+          break;
+        }
+
+        final TrendCallToAction? primaryCta = drop.callToActions.isNotEmpty
+            ? drop.callToActions.first
+            : null;
+        final TrendTickerEvent? ticker = pulse.eventTicker.isNotEmpty
+            ? pulse.eventTicker.firstWhere(
+                (event) => event.isLive,
+                orElse: () => pulse.eventTicker.first,
+              )
+            : null;
+        final Color accent = drop.accentColors.isNotEmpty
+            ? drop.accentColors.first
+            : (highContrast ? Colors.white : AppColors.primaryMain);
+        final int liveCount = pulse.eventTicker
+            .where((event) => event.isLive)
+            .length;
+        final int sagaCount = pulse.weeklySaga.length;
+        final num energyScore = (liveCount * 2 + sagaCount).clamp(0, 10);
+        final double energy = energyScore.toDouble() / 10;
+        final String curator = drop.pinterestCurator;
+        final String windowLabel = _formatTrendWindow(drop);
+        final String energyLabel =
+            '$liveCount live events | $sagaCount saga threads';
+
+        Widget readyCard = GlassContainer(
+          padding: const EdgeInsets.all(DesignTokens.spaceL),
+          borderRadius: BorderRadius.circular(DesignTokens.radiusL),
+          borderColor: borderColor,
+          gradientColors: highContrast
+              ? [AppColors.neutral900, AppColors.neutral900]
+              : [
+                  accent.withValues(alpha: 0.14),
+                  Colors.white.withValues(alpha: 0.92),
+                ],
+          showLiquidEffects: !highContrast && !reducedMotion,
+          liquidIntensity: 0.35,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(DesignTokens.radiusM),
+                    child: AspectRatio(
+                      aspectRatio: 4 / 5,
+                      child: Image.network(
+                        drop.heroImageUrl,
+                        fit: BoxFit.cover,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Container(
+                            color: Colors.black.withValues(alpha: 0.08),
+                          );
+                        },
+                        errorBuilder: (_, __, ___) => Container(
+                          color: Colors.black.withValues(alpha: 0.12),
+                          child: Icon(
+                            Icons.broken_image,
+                            color: highContrast
+                                ? Colors.white.withValues(alpha: 0.6)
+                                : Colors.black.withValues(alpha: 0.4),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: DesignTokens.spaceL),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Daily Drop',
+                          style: AppTextStyles.labelMedium.copyWith(
+                            color: bodyColor,
+                            letterSpacing: 0.6,
+                          ),
+                        ),
+                        const SizedBox(height: DesignTokens.spaceXS),
+                        Text(
+                          drop.title,
+                          style: AppTextStyles.titleLarge.copyWith(
+                            color: titleColor,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: DesignTokens.spaceXS),
+                        Text(
+                          drop.tagline,
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            color: bodyColor,
+                          ),
+                        ),
+                        const SizedBox(height: DesignTokens.spaceS),
+                        Text(
+                          '$curator | $windowLabel',
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: bodyColor.withValues(
+                              alpha: highContrast ? 0.8 : 0.7,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              if (drop.badges.isNotEmpty) ...[
+                const SizedBox(height: DesignTokens.spaceM),
+                Wrap(
+                  spacing: DesignTokens.spaceS,
+                  runSpacing: DesignTokens.spaceS,
+                  children: drop.badges
+                      .take(3)
+                      .map((badge) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: DesignTokens.spaceM,
+                            vertical: DesignTokens.spaceXS,
+                          ),
+                          decoration: BoxDecoration(
+                            color: highContrast
+                                ? Colors.white.withValues(alpha: 0.12)
+                                : Colors.black.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(
+                              DesignTokens.radiusM,
+                            ),
+                          ),
+                          child: Text(
+                            badge,
+                            style: AppTextStyles.labelMedium.copyWith(
+                              color: highContrast
+                                  ? Colors.white
+                                  : Colors.black.withValues(alpha: 0.72),
+                            ),
+                          ),
+                        );
+                      })
+                      .toList(growable: false),
+                ),
+              ],
+              const SizedBox(height: DesignTokens.spaceM),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(DesignTokens.radiusM),
+                child: LinearProgressIndicator(
+                  value: energy.clamp(0.0, 1.0),
+                  minHeight: 6,
+                  backgroundColor: highContrast
+                      ? Colors.white.withValues(alpha: 0.12)
+                      : Colors.black.withValues(alpha: 0.08),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    highContrast ? Colors.white : accent,
+                  ),
+                ),
+              ),
+              const SizedBox(height: DesignTokens.spaceXS),
+              Text(
+                energyLabel,
+                style: AppTextStyles.bodySmall.copyWith(color: bodyColor),
+              ),
+              if (pulse.lastLoaded != null) ...[
+                const SizedBox(height: DesignTokens.spaceXXS),
+                Text(
+                  'Synced ${_relativeTime(pulse.lastLoaded!)}',
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: bodyColor.withValues(
+                      alpha: highContrast ? 0.8 : 0.7,
+                    ),
+                  ),
+                ),
+              ],
+              if (ticker != null) ...[
+                const SizedBox(height: DesignTokens.spaceM),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: DesignTokens.spaceM,
+                    vertical: DesignTokens.spaceS,
+                  ),
+                  decoration: BoxDecoration(
+                    color: highContrast
+                        ? Colors.white.withValues(alpha: 0.08)
+                        : accent.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(DesignTokens.radiusM),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.graphic_eq,
+                        size: 18,
+                        color: highContrast ? Colors.white : Colors.black,
+                      ),
+                      const SizedBox(width: DesignTokens.spaceS),
+                      Expanded(
+                        child: Text(
+                          ticker.message,
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: highContrast
+                                ? Colors.white
+                                : Colors.black.withValues(alpha: 0.8),
+                          ),
+                        ),
+                      ),
+                      if (ticker.isLive)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: DesignTokens.spaceS,
+                            vertical: DesignTokens.spaceXXS,
+                          ),
+                          decoration: BoxDecoration(
+                            color: highContrast
+                                ? Colors.white
+                                : Colors.black.withValues(alpha: 0.85),
+                            borderRadius: BorderRadius.circular(
+                              DesignTokens.radiusRound,
+                            ),
+                          ),
+                          child: Text(
+                            'LIVE',
+                            style: AppTextStyles.labelSmall.copyWith(
+                              color: highContrast ? Colors.black : Colors.white,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+              const SizedBox(height: DesignTokens.spaceM),
+              Row(
+                children: [
+                  if (primaryCta != null)
+                    Expanded(
+                      child: GlassButton(
+                        onPressed: () {
+                          pulse.recordCtaTap(primaryCta);
+                          context.read<NavigationProvider>().push(
+                            primaryCta.route,
+                          );
+                        },
+                        child: Text(primaryCta.label),
+                      ),
+                    ),
+                  if (primaryCta != null)
+                    const SizedBox(width: DesignTokens.spaceM),
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () {
+                        context.read<NavigationProvider>().push(
+                          AppRouter.trendPulse,
+                        );
+                      },
+                      child: const Text('Open Trend Pulse'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+
+        if (!reducedMotion) {
+          readyCard = readyCard
+              .animate()
+              .fadeIn(duration: 400.ms, curve: Curves.easeOutCubic)
+              .slideY(
+                begin: 0.08,
+                end: 0,
+                duration: 400.ms,
+                curve: Curves.easeOutCubic,
+              );
+        }
+        card = readyCard;
+        break;
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Trend Pulse Spotlight',
+          style: AppTextStyles.headlineSmall.copyWith(color: titleColor),
+        ),
+        const SizedBox(height: DesignTokens.spaceM),
+        card,
+      ],
+    );
+  }
+
+  String _formatTrendWindow(TrendDrop drop) {
+    if (!drop.isLive) {
+      return 'Replay ready';
+    }
+    final Duration remaining = drop.remainingWindow;
+    if (remaining.isNegative) {
+      return 'Window closed';
+    }
+    final int hours = remaining.inHours;
+    final int minutes = remaining.inMinutes.remainder(60);
+    if (hours == 0) {
+      return '$minutes min left';
+    }
+    if (minutes == 0) {
+      return '$hours h left';
+    }
+    return '$hours h $minutes m left';
+  }
+
+  String _relativeTime(DateTime timestamp) {
+    final Duration diff = DateTime.now().difference(timestamp);
+    if (diff.inMinutes < 1) {
+      return 'just now';
+    }
+    if (diff.inHours < 1) {
+      return '${diff.inMinutes} min ago';
+    }
+    if (diff.inHours < 24) {
+      return '${diff.inHours} h ago';
+    }
+    return '${diff.inDays} d ago';
   }
 
   Widget _buildCapsulePreview() {

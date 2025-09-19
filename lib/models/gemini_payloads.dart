@@ -13,6 +13,18 @@ class GeminiModelRequest extends Equatable {
   final String prompt;
   final Map<String, String> contextHints;
 
+  GeminiModelRequest copyWith({
+    File? userImage,
+    String? prompt,
+    Map<String, String>? contextHints,
+  }) {
+    return GeminiModelRequest(
+      userImage: userImage ?? this.userImage,
+      prompt: prompt ?? this.prompt,
+      contextHints: contextHints ?? this.contextHints,
+    );
+  }
+
   @override
   List<Object?> get props => <Object?>[userImage.path, prompt, contextHints];
 }
@@ -34,15 +46,33 @@ class GeminiBlendRequest extends Equatable {
   final String prompt;
   final Map<String, String> contextHints;
 
+  GeminiBlendRequest copyWith({
+    String? modelImageDataUrl,
+    File? garmentImage,
+    String? garmentName,
+    String? garmentId,
+    String? prompt,
+    Map<String, String>? contextHints,
+  }) {
+    return GeminiBlendRequest(
+      modelImageDataUrl: modelImageDataUrl ?? this.modelImageDataUrl,
+      garmentImage: garmentImage ?? this.garmentImage,
+      garmentName: garmentName ?? this.garmentName,
+      garmentId: garmentId ?? this.garmentId,
+      prompt: prompt ?? this.prompt,
+      contextHints: contextHints ?? this.contextHints,
+    );
+  }
+
   @override
   List<Object?> get props => <Object?>[
-        modelImageDataUrl,
-        garmentImage.path,
-        garmentName,
-        garmentId,
-        prompt,
-        contextHints,
-      ];
+    modelImageDataUrl,
+    garmentImage.path,
+    garmentName,
+    garmentId,
+    prompt,
+    contextHints,
+  ];
 }
 
 class GeminiPoseRequest extends Equatable {
@@ -60,11 +90,11 @@ class GeminiPoseRequest extends Equatable {
 
   @override
   List<Object?> get props => <Object?>[
-        baseImageDataUrl,
-        poseInstruction,
-        promptTemplate,
-        contextHints,
-      ];
+    baseImageDataUrl,
+    poseInstruction,
+    promptTemplate,
+    contextHints,
+  ];
 }
 
 class GeminiColorRequest extends Equatable {
@@ -84,12 +114,12 @@ class GeminiColorRequest extends Equatable {
 
   @override
   List<Object?> get props => <Object?>[
-        baseImageDataUrl,
-        garmentName,
-        colorPrompt,
-        promptTemplate,
-        contextHints,
-      ];
+    baseImageDataUrl,
+    garmentName,
+    colorPrompt,
+    promptTemplate,
+    contextHints,
+  ];
 }
 
 class GeminiErrorSurface extends Equatable {
@@ -115,15 +145,15 @@ class GeminiErrorSurface extends Equatable {
 
   @override
   List<Object?> get props => <Object?>[
-        code,
-        title,
-        message,
-        actionLabel,
-        explanation,
-        illustrationDataUrl,
-        severity,
-        canRetry,
-      ];
+    code,
+    title,
+    message,
+    actionLabel,
+    explanation,
+    illustrationDataUrl,
+    severity,
+    canRetry,
+  ];
 }
 
 class GeminiErrorSurfaceRequest extends Equatable {
@@ -143,12 +173,12 @@ class GeminiErrorSurfaceRequest extends Equatable {
 
   @override
   List<Object?> get props => <Object?>[
-        operation,
-        error,
-        highContrast,
-        reducedMotion,
-        contextHints,
-      ];
+    operation,
+    error,
+    highContrast,
+    reducedMotion,
+    contextHints,
+  ];
 }
 
 class GeminiImageResult extends Equatable {
@@ -166,14 +196,30 @@ class GeminiImageResult extends Equatable {
   final List<String> warnings;
   final Map<String, Object?> metadata;
 
+  GeminiImageResult copyWith({
+    String? imageDataUrl,
+    Duration? elapsed,
+    String? attributionToken,
+    List<String>? warnings,
+    Map<String, Object?>? metadata,
+  }) {
+    return GeminiImageResult(
+      imageDataUrl: imageDataUrl ?? this.imageDataUrl,
+      elapsed: elapsed ?? this.elapsed,
+      attributionToken: attributionToken ?? this.attributionToken,
+      warnings: warnings ?? this.warnings,
+      metadata: metadata ?? this.metadata,
+    );
+  }
+
   @override
   List<Object?> get props => <Object?>[
-        imageDataUrl,
-        elapsed,
-        attributionToken,
-        warnings,
-        metadata,
-      ];
+    imageDataUrl,
+    elapsed,
+    attributionToken,
+    warnings,
+    metadata,
+  ];
 }
 
 class GeminiFailure implements Exception {
@@ -192,14 +238,11 @@ class GeminiFailure implements Exception {
   final StackTrace? stackTrace;
 
   @override
+  @override
   String toString() => 'GeminiFailure(code: $code, message: $message)';
 }
 
-enum GeminiErrorSeverity {
-  info,
-  warning,
-  critical,
-}
+enum GeminiErrorSeverity { info, warning, critical }
 
 class GeminiPrompts {
   static const String modelPhoto = '''

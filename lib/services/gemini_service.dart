@@ -1,51 +1,277 @@
-import 'dart:io';
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
+
 import 'package:google_generative_ai/google_generative_ai.dart';
 
-/// Gemini AI Service for virtual try-on functionality
-/// Converted from TypeScript React service to Flutter Dart
-///
-/// Provides AI-powered image generation for:
-/// - Model photo processing
-/// - Virtual garment try-on
-/// - Pose variations
-/// - Color variations
+import '../models/models.dart';
 
-class GeminiService {
-  late final GenerativeModel _model;
-  static const String _modelName = 'gemini-2.0-flash-image-preview';
+class GeminiServiceConfig {
+  const GeminiServiceConfig({
+    this.modelName = 'gemini-2.0-flash-image-preview',
+    this.requestTimeout = const Duration(seconds: 60),
+  });
 
-  GeminiService({required String apiKey}) {
-    _model = GenerativeModel(model: _modelName, apiKey: apiKey);
+  final String modelName;
+  final Duration requestTimeout;
+
+  GeminiServiceConfig copyWith({String? modelName, Duration? requestTimeout}) {
+    return GeminiServiceConfig(
+      modelName: modelName ?? this.modelName,
+      requestTimeout: requestTimeout ?? this.requestTimeout,
+    );
   }
 
-  /// Convert File to base64 data part for Gemini API
+  static GeminiServiceConfig fromEnv(Map<String, String> env) {
+    final model = env['GEMINI_VTO_MODEL']?.trim();
+    final timeout = env['GEMINI_TIMEOUT']?.trim();
+
+    Duration? parsedTimeout;
+    if (timeout != null && timeout.isNotEmpty) {
+      final seconds = int.tryParse(timeout);
+      if (seconds != null && seconds > 0) {
+        parsedTimeout = Duration(seconds: seconds);
+      }
+    }
+
+    return GeminiServiceConfig(
+      modelName: (model != null && model.isNotEmpty)
+          ? model
+          : 'gemini-2.0-flash-image-preview',
+      requestTimeout: parsedTimeout ?? const Duration(seconds: 60),
+    );
+  }
+}
+
+class GeminiService {
+  factory GeminiService({
+    required String apiKey,
+    GeminiServiceConfig? config,
+    GenerativeModel? client,
+    Future<GenerateContentResponse> Function(Iterable<Content> prompt)?
+    overrideGenerator,
+  }) {
+    final resolved = config ?? const GeminiServiceConfig();
+    final model =
+        client ?? GenerativeModel(model: resolved.modelName, apiKey: apiKey);
+    return GeminiService._(resolved, model, override: overrideGenerator);
+  }
+
+  GeminiService._(
+    this._config,
+    this._model, {
+    Future<GenerateContentResponse> Function(Iterable<Content> prompt)?
+    override,
+  }) {
+    _contentGenerator = override ?? (prompt) => _model.generateContent(prompt);
+  }
+
+  final GeminiServiceConfig _config;
+  final GenerativeModel _model;
+  late final Future<GenerateContentResponse> Function(Iterable<Content> prompt)
+  _contentGenerator;
+
+  GeminiServiceConfig get config => _config;
+
+  Future<GeminiImageResult> generateModelImage(
+    GeminiModelRequest request,
+  ) async {
+    final stopwatch = Stopwatch()..start();
+    try {
+      final userPart = await _fileToDataPart(request.userImage);
+      final prompt = _mergePrompt(request.prompt, request.contextHints);
+
+      final response = await _withTimeout(
+        _contentGenerator([
+          Content.multi([userPart, TextPart(prompt)]),
+        ]),
+      );
+
+      stopwatch.stop();
+      return _extractImage(
+        response,
+        elapsed: stopwatch.elapsed,
+        contextHints: request.contextHints,
+      );
+    } on GeminiFailure {
+      rethrow;
+    } catch (error, stackTrace) {
+      throw _wrapException(
+        code: 'model_image_error',
+        message: 'Failed to generate model image.',
+        error: error,
+        stackTrace: stackTrace,
+        contextHints: request.contextHints,
+      );
+    }
+  }
+
+  Future<GeminiImageResult> blendGarment(GeminiBlendRequest request) async {
+    final stopwatch = Stopwatch()..start();
+    try {
+      final modelPart = _dataUrlToDataPart(request.modelImageDataUrl);
+      final garmentPart = await _fileToDataPart(request.garmentImage);
+      final prompt = _mergePrompt(request.prompt, <String, String>{
+        ...request.contextHints,
+        'garment_name': request.garmentName,
+        if (request.garmentId != null) 'garment_id': request.garmentId!,
+      });
+
+      final response = await _withTimeout(
+        _contentGenerator([
+          Content.multi([modelPart, garmentPart, TextPart(prompt)]),
+        ]),
+      );
+
+      stopwatch.stop();
+      return _extractImage(
+        response,
+        elapsed: stopwatch.elapsed,
+        contextHints: request.contextHints,
+        extraMetadata: <String, Object?>{
+          'garmentName': request.garmentName,
+          if (request.garmentId != null) 'garmentId': request.garmentId,
+        },
+      );
+    } on GeminiFailure {
+      rethrow;
+    } catch (error, stackTrace) {
+      throw _wrapException(
+        code: 'garment_blend_error',
+        message: 'Failed to blend garment onto the model.',
+        error: error,
+        stackTrace: stackTrace,
+        contextHints: request.contextHints,
+      );
+    }
+  }
+
+  Future<GeminiImageResult> generatePoseVariation(
+    GeminiPoseRequest request,
+  ) async {
+    final stopwatch = Stopwatch()..start();
+    try {
+      final basePart = _dataUrlToDataPart(request.baseImageDataUrl);
+      final prompt = _mergePrompt(
+        request.promptTemplate.replaceFirst('{pose}', request.poseInstruction),
+        request.contextHints,
+      );
+
+      final response = await _withTimeout(
+        _contentGenerator([
+          Content.multi([basePart, TextPart(prompt)]),
+        ]),
+      );
+
+      stopwatch.stop();
+      return _extractImage(
+        response,
+        elapsed: stopwatch.elapsed,
+        contextHints: request.contextHints,
+        extraMetadata: <String, Object?>{'pose': request.poseInstruction},
+      );
+    } on GeminiFailure {
+      rethrow;
+    } catch (error, stackTrace) {
+      throw _wrapException(
+        code: 'pose_generation_error',
+        message: 'Failed to generate pose variation.',
+        error: error,
+        stackTrace: stackTrace,
+        contextHints: request.contextHints,
+      );
+    }
+  }
+
+  Future<GeminiImageResult> generateColorVariation(
+    GeminiColorRequest request,
+  ) async {
+    final stopwatch = Stopwatch()..start();
+    try {
+      final basePart = _dataUrlToDataPart(request.baseImageDataUrl);
+      final prompt = _mergePrompt(
+        request.promptTemplate
+            .replaceFirst('{garment}', request.garmentName)
+            .replaceFirst('{color}', request.colorPrompt),
+        request.contextHints,
+      );
+
+      final response = await _withTimeout(
+        _contentGenerator([
+          Content.multi([basePart, TextPart(prompt)]),
+        ]),
+      );
+
+      stopwatch.stop();
+      return _extractImage(
+        response,
+        elapsed: stopwatch.elapsed,
+        contextHints: request.contextHints,
+        extraMetadata: <String, Object?>{
+          'garmentName': request.garmentName,
+          'color': request.colorPrompt,
+        },
+      );
+    } on GeminiFailure {
+      rethrow;
+    } catch (error, stackTrace) {
+      throw _wrapException(
+        code: 'color_variation_error',
+        message: 'Failed to generate colour variation.',
+        error: error,
+        stackTrace: stackTrace,
+        contextHints: request.contextHints,
+      );
+    }
+  }
+
+  Future<GeminiErrorSurface> generateErrorSurface(
+    GeminiErrorSurfaceRequest request,
+  ) async {
+    if (request.error is GeminiFailure) {
+      return (request.error as GeminiFailure).surface;
+    }
+
+    final explanation = request.error.toString();
+    final title = request.highContrast ? 'Try-On Paused' : 'Try-On Issue';
+    final action = request.reducedMotion ? 'Retry' : 'Try Again';
+
+    return GeminiErrorSurface(
+      code: '${request.operation}_fallback',
+      title: title,
+      message:
+          'We couldn\'t finish the ${request.operation.replaceAll('_', ' ')} request.',
+      explanation: explanation,
+      actionLabel: action,
+      severity: GeminiErrorSeverity.warning,
+    );
+  }
+
+  Future<T> _withTimeout<T>(Future<T> future) =>
+      future.timeout(_config.requestTimeout);
+
   Future<DataPart> _fileToDataPart(File file) async {
     final bytes = await file.readAsBytes();
     final mimeType = _getMimeType(file.path);
     return DataPart(mimeType, bytes);
   }
 
-  /// Convert base64 data URL to DataPart
   DataPart _dataUrlToDataPart(String dataUrl) {
     final parts = dataUrl.split(',');
     if (parts.length < 2) {
-      throw Exception('Invalid data URL format');
+      throw ArgumentError('Invalid data URL format.');
     }
 
     final mimeMatch = RegExp(r':([^;]*);').firstMatch(parts[0]);
     if (mimeMatch == null) {
-      throw Exception('Could not parse MIME type from data URL');
+      throw ArgumentError('Unable to parse MIME type from data URL.');
     }
 
     final mimeType = mimeMatch.group(1)!;
-    final base64Data = parts[1];
-    final bytes = base64Decode(base64Data);
-
+    final bytes = base64Decode(parts[1]);
     return DataPart(mimeType, bytes);
   }
 
-  /// Get MIME type from file extension
   String _getMimeType(String filePath) {
     final extension = filePath.split('.').last.toLowerCase();
     switch (extension) {
@@ -61,169 +287,175 @@ class GeminiService {
     }
   }
 
-  /// Handle API response and extract image data
-  String _handleApiResponse(GenerateContentResponse response) {
-    // Check for prompt feedback issues
-    if (response.promptFeedback?.blockReason != null) {
-      final blockReason = response.promptFeedback!.blockReason;
-      final blockMessage = response.promptFeedback!.blockReasonMessage ?? '';
-      throw Exception(
-        'Request was blocked. Reason: $blockReason. $blockMessage',
+  GeminiImageResult _extractImage(
+    GenerateContentResponse response, {
+    required Duration elapsed,
+    Map<String, String> contextHints = const <String, String>{},
+    Map<String, Object?> extraMetadata = const <String, Object?>{},
+  }) {
+    final feedback = response.promptFeedback;
+    if (feedback?.blockReason != null) {
+      throw _wrapException(
+        code: 'request_blocked_${feedback!.blockReason!.name}',
+        message:
+            feedback.blockReasonMessage ??
+            'The request was blocked by Gemini safety systems.',
+        error: feedback,
+        contextHints: contextHints,
       );
     }
 
-    final candidates = response.candidates;
-
-    if (candidates.isEmpty) {
-      throw Exception('No candidates returned by AI model.');
-    }
-
-    // Find image part in candidates
-    for (final candidate in candidates) {
-      final parts = candidate.content.parts;
-      for (final part in parts) {
+    for (final candidate in response.candidates) {
+      for (final part in candidate.content.parts) {
         if (part is DataPart) {
-          final base64Data = base64Encode(part.bytes);
-          return 'data:${part.mimeType};base64,$base64Data';
+          final dataUrl =
+              'data:${part.mimeType};base64,${base64Encode(part.bytes)}';
+          final warnings = <String>[];
+          if (candidate.finishReason != null &&
+              candidate.finishReason != FinishReason.stop) {
+            warnings.add('finish_reason:${candidate.finishReason!.name}');
+          }
+          final metadata = <String, Object?>{
+            ...extraMetadata,
+            if (candidate.safetyRatings != null &&
+                candidate.safetyRatings!.isNotEmpty)
+              'safetyRatings': candidate.safetyRatings!
+                  .map(
+                    (rating) =>
+                        '${rating.category.name}:${rating.probability.name}',
+                  )
+                  .toList(),
+          };
+
+          return GeminiImageResult(
+            imageDataUrl: dataUrl,
+            elapsed: elapsed,
+            warnings: warnings,
+            metadata: metadata,
+          );
         }
       }
     }
 
-    // Check finish reason
-    final finishReason = candidates.first.finishReason;
-    if (finishReason != null && finishReason != FinishReason.stop) {
-      throw Exception(
-        'Image generation stopped unexpectedly. Reason: $finishReason. '
-        'This often relates to safety settings.',
-      );
-    }
+    final finishReason = response.candidates.isNotEmpty
+        ? response.candidates.first.finishReason
+        : null;
 
-    // If no image found, throw error
-    final textResponse = response.text?.trim();
-    throw Exception(
-      'The AI model did not return an image. '
-      '${textResponse != null ? 'The model responded with text: "$textResponse"' : 'This can happen due to safety filters or if the request is too complex. Please try a different image.'}',
+    throw _wrapException(
+      code: 'missing_image_candidate',
+      message: 'Gemini did not return an image candidate.',
+      error: finishReason ?? 'missing_candidate',
+      contextHints: contextHints,
     );
   }
 
-  /// Generate model image from user photo
-  /// Transforms user photo into professional model photo
-  Future<String> generateModelImage(File userImage) async {
-    try {
-      final userImagePart = await _fileToDataPart(userImage);
+  GeminiFailure _wrapException({
+    required String code,
+    required String message,
+    required Object error,
+    StackTrace? stackTrace,
+    Map<String, String> contextHints = const <String, String>{},
+  }) {
+    final surface = _surfaceFromError(
+      code: code,
+      message: message,
+      error: error,
+      contextHints: contextHints,
+    );
 
-      const prompt = '''
-You are an expert fashion photographer AI. Transform the person in this image into a full-body fashion model photo suitable for an e-commerce website. The background must be a clean, neutral studio backdrop (light gray, #f0f0f0). The person should have a neutral, professional model expression. Preserve the person's identity, unique features, and body type, but place them in a standard, relaxed standing model pose. The final image must be photorealistic. Return ONLY the final image.
-''';
-
-      final response = await _model.generateContent([
-        Content.multi([userImagePart, TextPart(prompt)]),
-      ]);
-
-      return _handleApiResponse(response);
-    } catch (e) {
-      throw Exception('Failed to generate model image: ${e.toString()}');
-    }
+    return GeminiFailure(
+      code: code,
+      message: surface.message,
+      surface: surface,
+      cause: error,
+      stackTrace: stackTrace,
+    );
   }
 
-  /// Generate virtual try-on image
-  /// Applies garment to model photo
-  Future<String> generateVirtualTryOnImage(
-    String modelImageUrl,
-    File garmentImage,
-  ) async {
-    try {
-      final modelImagePart = _dataUrlToDataPart(modelImageUrl);
-      final garmentImagePart = await _fileToDataPart(garmentImage);
-
-      const prompt = '''
-You are an expert virtual try-on AI. You will be given a 'model image' and a 'garment image'. Your task is to create a new photorealistic image where the person from the 'model image' is wearing the clothing from the 'garment image'.
-
-**Crucial Rules:**
-1. **Complete Garment Replacement:** You MUST completely REMOVE and REPLACE the clothing item worn by the person in the 'model image' with the new garment. No part of the original clothing (e.g., collars, sleeves, patterns) should be visible in the final image.
-2. **Preserve the Model:** The person's face, hair, body shape, and pose from the 'model image' MUST remain unchanged.
-3. **Preserve the Background:** The entire background from the 'model image' MUST be preserved perfectly.
-4. **Apply the Garment:** Realistically fit the new garment onto the person. It should adapt to their pose with natural folds, shadows, and lighting consistent with the original scene.
-5. **Output:** Return ONLY the final, edited image. Do not include any text.
-''';
-
-      final response = await _model.generateContent([
-        Content.multi([modelImagePart, garmentImagePart, TextPart(prompt)]),
-      ]);
-
-      return _handleApiResponse(response);
-    } catch (e) {
-      throw Exception(
-        'Failed to generate virtual try-on image: ${e.toString()}',
+  GeminiErrorSurface _surfaceFromError({
+    required String code,
+    required String message,
+    required Object error,
+    Map<String, String> contextHints = const <String, String>{},
+  }) {
+    if (error is PromptFeedback) {
+      final reasonName = error.blockReason?.name ?? 'unknown';
+      return GeminiErrorSurface(
+        code: 'blocked_$reasonName',
+        title: 'Request Blocked',
+        message: error.blockReasonMessage ?? message,
+        explanation:
+            'Gemini blocked the request (${reasonName.toUpperCase()}).',
+        actionLabel: 'Adjust Input',
+        severity: GeminiErrorSeverity.warning,
+        canRetry: false,
       );
     }
+
+    if (error is TimeoutException) {
+      return GeminiErrorSurface(
+        code: '${code}_timeout',
+        title: 'Connection Timed Out',
+        message: 'Gemini took too long to respond. Please try again.',
+        explanation: 'Timeout after ${_config.requestTimeout.inSeconds}s.',
+        actionLabel: 'Retry',
+        severity: GeminiErrorSeverity.warning,
+      );
+    }
+
+    if (error is FinishReason && error != FinishReason.stop) {
+      return GeminiErrorSurface(
+        code: '${code}_${error.name}',
+        title: 'Incomplete Response',
+        message: 'Gemini stopped early while generating the image.',
+        explanation: 'Finish reason: ${error.name}.',
+        actionLabel: 'Retry',
+        severity: GeminiErrorSeverity.warning,
+      );
+    }
+
+    if (error is GenerativeAIException) {
+      return GeminiErrorSurface(
+        code: '${code}_${error.message}',
+        title: 'Gemini Service Error',
+        message: message,
+        explanation: error.message,
+        actionLabel: 'Retry',
+        severity: GeminiErrorSeverity.warning,
+      );
+    }
+
+    return GeminiErrorSurface(
+      code: code,
+      title: 'Try-On Failed',
+      message: message,
+      explanation: error.toString(),
+      actionLabel: 'Try Again',
+      severity: GeminiErrorSeverity.critical,
+    );
   }
 
-  /// Generate pose variation
-  /// Changes the pose/perspective of the try-on image
-  Future<String> generatePoseVariation(
-    String tryOnImageUrl,
-    String poseInstruction,
-  ) async {
-    try {
-      final tryOnImagePart = _dataUrlToDataPart(tryOnImageUrl);
-
-      final prompt =
-          '''
-You are an expert fashion photographer AI. Take this image and regenerate it from a different perspective. The person, clothing, and background style must remain identical. The new perspective should be: "$poseInstruction". Return ONLY the final image.
-''';
-
-      final response = await _model.generateContent([
-        Content.multi([tryOnImagePart, TextPart(prompt)]),
-      ]);
-
-      return _handleApiResponse(response);
-    } catch (e) {
-      throw Exception('Failed to generate pose variation: ${e.toString()}');
+  String _mergePrompt(String prompt, Map<String, String> hints) {
+    if (hints.isEmpty) {
+      return prompt;
     }
-  }
 
-  /// Generate color variation
-  /// Changes the color of a specific garment in the image
-  Future<String> generateColorVariation(
-    String baseImageUrl,
-    String garmentName,
-    String colorPrompt,
-  ) async {
-    try {
-      final baseImagePart = _dataUrlToDataPart(baseImageUrl);
-
-      final prompt =
-          '''
-You are a virtual try-on photo editor AI. Your task is to change the color of a specific garment in the provided image.
-
-**Instructions:**
-1. **Identify the Garment:** The person in the image is wearing a "$garmentName".
-2. **Change the Color:** Change the color of the "$garmentName" to "$colorPrompt".
-3. **Preserve Everything Else:** The person's face, hair, body, pose, the background, and any other clothing items MUST remain completely unchanged.
-4. **Realism:** Ensure the new color is applied realistically, with natural-looking shadows, highlights, and textures consistent with the original image's lighting.
-5. **Output:** Return ONLY the final, edited image. Do not include any text or explanations.
-''';
-
-      final response = await _model.generateContent([
-        Content.multi([baseImagePart, TextPart(prompt)]),
-      ]);
-
-      return _handleApiResponse(response);
-    } catch (e) {
-      throw Exception('Failed to generate color variation: ${e.toString()}');
-    }
+    final buffer = StringBuffer(prompt.trim());
+    buffer.writeln('\n\nContext hints:');
+    hints.forEach((key, value) {
+      buffer.writeln('- $key: $value');
+    });
+    return buffer.toString();
   }
 }
 
-/// Pose instruction constants - matching the React app
 class PoseInstructions {
-  static const List<String> instructions = [
-    "Full frontal view, hands on hips",
-    "Slightly turned, 3/4 view",
-    "Side profile view",
-    "Jumping in the air, mid-action shot",
-    "Walking towards camera",
-    "Leaning against a wall",
+  static const List<String> instructions = <String>[
+    'Full frontal view, hands on hips',
+    'Slightly turned, 3/4 view',
+    'Side profile view',
+    'Jumping in the air, mid-action shot',
+    'Walking towards camera',
+    'Leaning against a wall',
   ];
 }

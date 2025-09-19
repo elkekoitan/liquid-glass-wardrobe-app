@@ -12,31 +12,8 @@ import '../../widgets/trends/trend_drop_card.dart';
 import '../../widgets/trends/trend_event_marquee.dart';
 import '../../widgets/trends/trend_saga_tile.dart';
 
-class TrendPulseScreen extends StatefulWidget {
+class TrendPulseScreen extends StatelessWidget {
   const TrendPulseScreen({super.key});
-
-  @override
-  State<TrendPulseScreen> createState() => _TrendPulseScreenState();
-}
-
-class _TrendPulseScreenState extends State<TrendPulseScreen> {
-  late TrendPulseProvider _provider;
-
-  @override
-  void initState() {
-    super.initState();
-    _provider = TrendPulseProvider();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      _provider.load();
-    });
-  }
-
-  @override
-  void dispose() {
-    _provider.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,40 +23,34 @@ class _TrendPulseScreenState extends State<TrendPulseScreen> {
     final bool reducedMotion = context.select<PersonalizationProvider, bool>(
       (prefs) => prefs.reducedMotion,
     );
+    final TrendPulseProvider provider = context.watch<TrendPulseProvider>();
 
-    return ChangeNotifierProvider<TrendPulseProvider>.value(
-      value: _provider,
-      child: Scaffold(
-        backgroundColor: highContrast ? Colors.black : const Color(0xFFF4F5FF),
-        body: Container(
-          decoration: highContrast
-              ? null
-              : const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFFF5F5FF), Color(0xFFE7E4FF)],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                  ),
+    return Scaffold(
+      backgroundColor: highContrast ? Colors.black : const Color(0xFFF4F5FF),
+      body: Container(
+        decoration: highContrast
+            ? null
+            : const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFFF5F5FF), Color(0xFFE7E4FF)],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
                 ),
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(DesignTokens.spaceL),
-              child: Consumer<TrendPulseProvider>(
-                builder: (context, provider, _) {
-                  return AnimatedSwitcher(
-                    duration: reducedMotion
-                        ? Duration.zero
-                        : const Duration(milliseconds: 350),
-                    switchInCurve: Curves.easeOutCubic,
-                    switchOutCurve: Curves.easeInCubic,
-                    child: _buildState(
-                      context,
-                      provider,
-                      highContrast: highContrast,
-                      reducedMotion: reducedMotion,
-                    ),
-                  );
-                },
+              ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(DesignTokens.spaceL),
+            child: AnimatedSwitcher(
+              duration: reducedMotion
+                  ? Duration.zero
+                  : const Duration(milliseconds: 350),
+              switchInCurve: Curves.easeOutCubic,
+              switchOutCurve: Curves.easeInCubic,
+              child: _buildState(
+                context,
+                provider,
+                highContrast: highContrast,
+                reducedMotion: reducedMotion,
               ),
             ),
           ),
@@ -219,7 +190,7 @@ class _TrendPulseScreenState extends State<TrendPulseScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildHeader(highContrast: highContrast),
+          _buildHeader(context, highContrast: highContrast),
           const SizedBox(height: DesignTokens.spaceL),
           TrendDropCard(
             drop: drop,
@@ -231,7 +202,7 @@ class _TrendPulseScreenState extends State<TrendPulseScreen> {
             },
           ),
           const SizedBox(height: DesignTokens.spaceXL),
-          _buildEnergyMeter(provider, highContrast: highContrast),
+          _buildEnergyMeter(context, provider, highContrast: highContrast),
           const SizedBox(height: DesignTokens.spaceXL),
           _buildSagaSection(
             context,
@@ -242,6 +213,7 @@ class _TrendPulseScreenState extends State<TrendPulseScreen> {
           ),
           const SizedBox(height: DesignTokens.spaceXL),
           _buildTickerSection(
+            context,
             provider,
             events,
             highContrast: highContrast,
@@ -253,7 +225,7 @@ class _TrendPulseScreenState extends State<TrendPulseScreen> {
     );
   }
 
-  Widget _buildHeader({required bool highContrast}) {
+  Widget _buildHeader(BuildContext context, {required bool highContrast}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -353,6 +325,7 @@ class _TrendPulseScreenState extends State<TrendPulseScreen> {
   }
 
   Widget _buildTickerSection(
+    BuildContext context,
     TrendPulseProvider provider,
     List<TrendTickerEvent> events, {
     required bool highContrast,
@@ -380,6 +353,7 @@ class _TrendPulseScreenState extends State<TrendPulseScreen> {
   }
 
   Widget _buildEnergyMeter(
+    BuildContext context,
     TrendPulseProvider provider, {
     required bool highContrast,
   }) {

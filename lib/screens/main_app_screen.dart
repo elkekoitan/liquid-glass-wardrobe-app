@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../providers/fit_check_provider.dart';
 import '../screens/start_screen.dart';
 import '../screens/canvas_screen.dart';
@@ -12,6 +11,7 @@ import '../widgets/layout/capsule_quick_picker.dart';
 import '../providers/personalization_provider.dart';
 import '../providers/navigation_provider.dart';
 import '../providers/capsule_provider.dart';
+import '../providers/try_on_session_provider.dart';
 import '../core/theme/app_spacing.dart';
 
 /// Main App Screen - Orchestrates the entire fit-check experience
@@ -24,21 +24,6 @@ class MainAppScreen extends StatefulWidget {
 
 class _MainAppScreenState extends State<MainAppScreen> {
   AppScreen _currentScreen = AppScreen.start;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final geminiApiKey = dotenv.env['GEMINI_API_KEY'];
-      if (geminiApiKey != null && geminiApiKey.isNotEmpty) {
-        context.read<FitCheckProvider>().initializeGeminiService(geminiApiKey);
-      } else {
-        debugPrint(
-          'Warning: GEMINI_API_KEY not found in environment variables',
-        );
-      }
-    });
-  }
 
   void _navigateToCanvas() {
     setState(() {
@@ -67,8 +52,9 @@ class _MainAppScreenState extends State<MainAppScreen> {
     showDialog(
       context: context,
       barrierDismissible: true,
-      builder: (dialogContext) =>
-          PoseSelectionPanel(onClose: () => dialogContext.read<NavigationProvider>().pop()),
+      builder: (dialogContext) => PoseSelectionPanel(
+        onClose: () => dialogContext.read<NavigationProvider>().pop(),
+      ),
     );
   }
 
@@ -100,6 +86,9 @@ class _MainAppScreenState extends State<MainAppScreen> {
     final defaultCapsuleId = context.select<PersonalizationProvider, String>(
       (prefs) => prefs.defaultCapsule,
     );
+    final session = context.watch<TryOnSessionProvider>();
+    final sessionError = session.errorSurface?.message;
+    final isSessionBusy = session.isBusy;
 
     return SafeArea(
       child: Column(
@@ -107,11 +96,11 @@ class _MainAppScreenState extends State<MainAppScreen> {
         children: [
           MainSectionHeader(
             title: 'Your Virtual Studio',
-            subtitle: provider.error ?? 'Adjust outfits, colors, and poses.',
+            subtitle: sessionError ?? provider.error ?? 'Adjust outfits, colors, and poses.',
             actions: [
               IconButton(
                 tooltip: 'Change pose',
-                onPressed: provider.isLoading ? null : _showPosePanel,
+                onPressed: (isSessionBusy || session.hasError) ? null : _showPosePanel,
                 icon: const Icon(Icons.accessibility_new),
               ),
             ],
@@ -125,8 +114,9 @@ class _MainAppScreenState extends State<MainAppScreen> {
               padding: const EdgeInsets.only(bottom: AppSpacing.xl),
               child: TryOnActionRail(
                 onInitiateColorChange: (index) => _showColorPanel(index),
-                onGarmentSelect: (file, garment) =>
-                    provider.applyGarment(file, garment),
+                onGarmentSelect: (file, garment) async {
+                  await session.blendGarment(file, garment);
+                },
                 header: _CapsuleRail(
                   defaultCapsuleId: defaultCapsuleId,
                   highContrast: highContrast,
@@ -158,13 +148,6 @@ class _CapsuleRail extends StatefulWidget {
 
 class _CapsuleRailState extends State<_CapsuleRail> {
   late CapsuleProvider _provider;
-
-  @override
-  void initState() {
-    super.initState();
-    _provider = CapsuleProvider(initialSelectionId: widget.defaultCapsuleId)
-      ..load();
-  }
 
   @override
   void didUpdateWidget(covariant _CapsuleRail oldWidget) {

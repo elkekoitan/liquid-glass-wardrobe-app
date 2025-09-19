@@ -1,16 +1,19 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart' as picker;
+import 'package:provider/provider.dart';
+
 import '../../design_system/design_tokens.dart';
-import '../../providers/fit_check_provider.dart';
+import '../../models/models.dart';
 import '../../providers/navigation_provider.dart';
+import '../../providers/try_on_session_provider.dart';
 import '../../utils/image_utils.dart';
 
 class ModernPhotoUploadScreen extends StatefulWidget {
-  final VoidCallback? onPhotoUploaded;
-
   const ModernPhotoUploadScreen({super.key, this.onPhotoUploaded});
+
+  final VoidCallback? onPhotoUploaded;
 
   @override
   State<ModernPhotoUploadScreen> createState() =>
@@ -22,16 +25,13 @@ class _ModernPhotoUploadScreenState extends State<ModernPhotoUploadScreen>
   late AnimationController _uploadController;
 
   File? _selectedImage;
-  bool _isUploading = false;
-  double _uploadProgress = 0.0;
+  bool _simulateProgress = false;
+  double _simulatedProgress = 0.0;
+  GeminiErrorSurface? _lastErrorSurface;
 
   @override
   void initState() {
     super.initState();
-    _setupAnimations();
-  }
-
-  void _setupAnimations() {
     _uploadController = AnimationController(
       duration: DesignTokens.durationSlow,
       vsync: this,
@@ -76,45 +76,47 @@ class _ModernPhotoUploadScreenState extends State<ModernPhotoUploadScreen>
       });
 
       await _processImage(croppedFile);
-    } catch (e) {
-      _showErrorSnackBar(messenger, 'Failed to process image: $e');
+    } catch (error) {
+      _showErrorSnackBar(messenger, 'Failed to process image: $error');
     }
   }
 
   Future<void> _processImage(File imageFile) async {
     final messenger = ScaffoldMessenger.of(context);
     final onPhotoUploaded = widget.onPhotoUploaded;
-    final provider = context.read<FitCheckProvider>();
+    final session = context.read<TryOnSessionProvider>();
 
     setState(() {
-      _isUploading = true;
-      _uploadProgress = 0.0;
+      _simulateProgress = true;
+      _simulatedProgress = 0.0;
     });
 
     _uploadController.forward();
 
-    // Simulate upload progress
     for (int i = 0; i <= 100; i += 5) {
       await Future.delayed(const Duration(milliseconds: 50));
-      if (mounted) {
-        setState(() {
-          _uploadProgress = i / 100;
-        });
-      }
+      if (!mounted) return;
+      setState(() {
+        _simulatedProgress = i / 100;
+      });
     }
 
-    await provider.processModelImage(imageFile);
+    final success = await session.prepareModelImage(imageFile);
 
     if (!mounted) return;
 
     setState(() {
-      _isUploading = false;
+      _simulateProgress = false;
+      _lastErrorSurface = session.errorSurface;
     });
 
-    if (provider.error == null) {
+    if (success && session.errorSurface == null) {
       onPhotoUploaded?.call();
     } else {
-      _showErrorSnackBar(messenger, provider.error!);
+      final surface = session.errorSurface ?? _lastErrorSurface;
+      if (surface != null) {
+        _showErrorSnackBar(messenger, surface.message);
+      }
     }
   }
 
@@ -152,7 +154,6 @@ class _ModernPhotoUploadScreenState extends State<ModernPhotoUploadScreen>
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Handle bar
           Container(
             width: 40,
             height: 4,
@@ -161,9 +162,7 @@ class _ModernPhotoUploadScreenState extends State<ModernPhotoUploadScreen>
               borderRadius: BorderRadius.circular(DesignTokens.radiusS),
             ),
           ),
-
           const SizedBox(height: DesignTokens.spaceXL),
-
           Text(
             'Choose Photo Source',
             style: AppTextStyles.headlineLarge.copyWith(
@@ -171,9 +170,7 @@ class _ModernPhotoUploadScreenState extends State<ModernPhotoUploadScreen>
               fontWeight: FontWeight.w700,
             ),
           ),
-
           const SizedBox(height: DesignTokens.spaceL),
-
           Text(
             'Select how you\'d like to add your photo',
             style: AppTextStyles.bodyMedium.copyWith(
@@ -181,128 +178,30 @@ class _ModernPhotoUploadScreenState extends State<ModernPhotoUploadScreen>
             ),
             textAlign: TextAlign.center,
           ),
-
           const SizedBox(height: DesignTokens.spaceXXL),
-
-          // Camera option
           GestureDetector(
             onTap: () {
               sheetContext.read<NavigationProvider>().pop();
               _pickImage(picker.ImageSource.camera);
             },
-            child: Container(
-              padding: const EdgeInsets.all(DesignTokens.spaceL),
-              decoration: BoxDecoration(
-                color: AppColors.neutralWhite,
-                borderRadius: BorderRadius.circular(DesignTokens.radiusM),
-                border: Border.all(color: AppColors.neutral300),
-                boxShadow: AppShadows.sm,
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(DesignTokens.spaceM),
-                    decoration: BoxDecoration(
-                      color: AppColors.neutral200,
-                      borderRadius: BorderRadius.circular(DesignTokens.radiusM),
-                    ),
-                    child: Icon(
-                      Icons.camera_alt,
-                      color: AppColors.neutral700,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: DesignTokens.spaceL),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Camera',
-                          style: AppTextStyles.headlineMedium.copyWith(
-                            color: AppColors.neutral900,
-                          ),
-                        ),
-                        Text(
-                          'Take a new photo',
-                          style: AppTextStyles.bodySmall.copyWith(
-                            color: AppColors.neutral600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Icon(
-                    Icons.arrow_forward_ios,
-                    color: AppColors.neutral400,
-                    size: 16,
-                  ),
-                ],
-              ),
+            child: _PhotoSourceTile(
+              icon: Icons.photo_camera,
+              title: 'Take Photo',
+              subtitle: 'Use your device camera',
             ),
           ),
-
-          const SizedBox(height: DesignTokens.spaceM),
-
-          // Gallery option
+          const SizedBox(height: DesignTokens.spaceL),
           GestureDetector(
             onTap: () {
               sheetContext.read<NavigationProvider>().pop();
               _pickImage(picker.ImageSource.gallery);
             },
-            child: Container(
-              padding: const EdgeInsets.all(DesignTokens.spaceL),
-              decoration: BoxDecoration(
-                color: AppColors.neutralWhite,
-                borderRadius: BorderRadius.circular(DesignTokens.radiusM),
-                border: Border.all(color: AppColors.neutral300),
-                boxShadow: AppShadows.sm,
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(DesignTokens.spaceM),
-                    decoration: BoxDecoration(
-                      color: AppColors.neutral200,
-                      borderRadius: BorderRadius.circular(DesignTokens.radiusM),
-                    ),
-                    child: Icon(
-                      Icons.photo_library,
-                      color: AppColors.neutral700,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: DesignTokens.spaceL),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Gallery',
-                          style: AppTextStyles.headlineMedium.copyWith(
-                            color: AppColors.neutral900,
-                          ),
-                        ),
-                        Text(
-                          'Choose from your photos',
-                          style: AppTextStyles.bodySmall.copyWith(
-                            color: AppColors.neutral600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Icon(
-                    Icons.arrow_forward_ios,
-                    color: AppColors.neutral400,
-                    size: 16,
-                  ),
-                ],
-              ),
+            child: _PhotoSourceTile(
+              icon: Icons.photo_library_rounded,
+              title: 'Photo Library',
+              subtitle: 'Choose an existing photo',
             ),
           ),
-
-          const SizedBox(height: DesignTokens.spaceXL),
         ],
       ),
     );
@@ -310,199 +209,106 @@ class _ModernPhotoUploadScreenState extends State<ModernPhotoUploadScreen>
 
   @override
   Widget build(BuildContext context) {
+    final session = context.watch<TryOnSessionProvider>();
+    final isBusy = session.isBusy;
+    final previewProgress = session.progress > 0
+        ? session.progress
+        : _simulatedProgress;
+
     return Scaffold(
-      body: Container(
-        color: AppColors.neutralWhite,
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Header
-              _buildHeader(),
-
-              // Main Content
-              Expanded(
-                child: _selectedImage == null
-                    ? _buildUploadInterface()
-                    : _buildImagePreview(),
-              ),
-            ],
+      backgroundColor: AppColors.neutral50,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+          onPressed: isBusy
+              ? null
+              : () => context.read<NavigationProvider>().maybePop(),
+        ),
+        title: Text(
+          'Upload Model Photo',
+          style: AppTextStyles.headlineSmall.copyWith(
+            color: AppColors.neutral900,
+            fontWeight: FontWeight.w700,
           ),
         ),
+        centerTitle: true,
       ),
+      body: _selectedImage == null
+          ? _buildEmptyState(isBusy)
+          : _buildImagePreview(
+              session: session,
+              isBusy: isBusy,
+              progressValue: previewProgress,
+            ),
+      floatingActionButton: isBusy
+          ? null
+          : FloatingActionButton.extended(
+              onPressed: _showImageSourceDialog,
+              label: const Text('Select Photo'),
+              icon: const Icon(Icons.add_a_photo_outlined),
+            ),
     );
   }
 
-  Widget _buildHeader() {
-    return Builder(
-      builder: (headerContext) => Padding(
-        padding: const EdgeInsets.all(DesignTokens.spaceL),
-        child: Row(
-          children: [
-            GestureDetector(
-              onTap: () => headerContext.read<NavigationProvider>().maybePop(),
-              child: Container(
-                padding: const EdgeInsets.all(DesignTokens.spaceS),
-                decoration: BoxDecoration(
-                  color: AppColors.neutral200,
-                  borderRadius: BorderRadius.circular(DesignTokens.radiusRound),
-                ),
-                child: Icon(
-                  Icons.arrow_back_ios,
-                  color: AppColors.neutral700,
-                  size: 18,
-                ),
-              ),
-            ),
-            const SizedBox(width: DesignTokens.spaceM),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Virtual Fitting',
-                    style: AppTextStyles.headlineLarge.copyWith(
-                      color: AppColors.neutral900,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  Text(
-                    'AI-powered virtual try-on technology',
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColors.neutral600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildUploadInterface() {
-    return Padding(
-      padding: const EdgeInsets.all(DesignTokens.spaceXL),
+  Widget _buildEmptyState(bool isBusy) {
+    return Center(
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Upload Area
-          GestureDetector(
-            onTap: _showImageSourceDialog,
-            child: Container(
-              width: 200,
-              height: 200,
-              decoration: BoxDecoration(
-                color: AppColors.neutral100,
-                borderRadius: BorderRadius.circular(DesignTokens.radiusXXL),
-                border: Border.all(color: AppColors.neutral300, width: 2),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(DesignTokens.spaceL),
-                    decoration: BoxDecoration(
-                      color: AppColors.neutral200,
-                      borderRadius: BorderRadius.circular(
-                        DesignTokens.radiusRound,
-                      ),
-                    ),
-                    child: Icon(
-                      Icons.cloud_upload_outlined,
-                      color: AppColors.neutral700,
-                      size: 48,
-                    ),
-                  ),
-                  const SizedBox(height: DesignTokens.spaceL),
-                  Text(
-                    'Tap to Upload',
-                    style: AppTextStyles.headlineMedium.copyWith(
-                      color: AppColors.neutral900,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: DesignTokens.spaceS),
-                  Text(
-                    'Add your photo here',
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColors.neutral600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: DesignTokens.spaceXXL),
-
-          // Tips
           Container(
-            padding: const EdgeInsets.all(DesignTokens.spaceL),
+            width: 120,
+            height: 120,
             decoration: BoxDecoration(
               color: AppColors.neutral100,
-              borderRadius: BorderRadius.circular(DesignTokens.radiusL),
-              boxShadow: AppShadows.sm,
+              borderRadius: BorderRadius.circular(DesignTokens.radiusXXL),
+              border: Border.all(color: AppColors.neutral200, width: 2),
             ),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(DesignTokens.spaceS),
-                      decoration: BoxDecoration(
-                        color: AppColors.neutral200,
-                        borderRadius: BorderRadius.circular(
-                          DesignTokens.radiusRound,
-                        ),
-                      ),
-                      child: Icon(
-                        Icons.tips_and_updates,
-                        color: AppColors.neutral700,
-                        size: 20,
-                      ),
-                    ),
-                    const SizedBox(width: DesignTokens.spaceM),
-                    Text(
-                      'Tips for Best Results',
-                      style: AppTextStyles.headlineSmall.copyWith(
-                        color: AppColors.neutral900,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: DesignTokens.spaceL),
-                ...[
-                  'Natural lighting produces the best results',
-                  'Full body shots ensure accurate sizing',
-                  'Hold phone vertically at chest height',
-                  'Form-fitting clothes show true silhouette',
-                ].map(
-                  (tip) => Padding(
-                    padding: const EdgeInsets.only(bottom: DesignTokens.spaceS),
-                    child: Text(
-                      tip,
-                      style: AppTextStyles.bodySmall.copyWith(
-                        color: AppColors.neutral700,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+            child: const Icon(
+              Icons.auto_awesome,
+              size: 48,
+              color: AppColors.neutral600,
             ),
+          ),
+          const SizedBox(height: DesignTokens.spaceXL),
+          Text(
+            'Let\'s begin your try-on',
+            style: AppTextStyles.headlineMedium.copyWith(
+              color: AppColors.neutral900,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: DesignTokens.spaceS),
+          Text(
+            'Upload a well-lit, full-body photo for the best results.',
+            style: AppTextStyles.bodyLarge.copyWith(
+              color: AppColors.neutral600,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: DesignTokens.spaceXL),
+          ElevatedButton.icon(
+            onPressed: isBusy ? null : _showImageSourceDialog,
+            icon: const Icon(Icons.add_a_photo_outlined),
+            label: const Text('Select Photo'),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildImagePreview() {
+  Widget _buildImagePreview({
+    required TryOnSessionProvider session,
+    required bool isBusy,
+    required double progressValue,
+  }) {
+    final statusLabel = session.statusLabel;
+
     return Padding(
       padding: const EdgeInsets.all(DesignTokens.spaceXL),
       child: Column(
         children: [
-          // Image Preview
           Expanded(
             child: Container(
               decoration: BoxDecoration(
@@ -514,16 +320,13 @@ class _ModernPhotoUploadScreenState extends State<ModernPhotoUploadScreen>
                 borderRadius: BorderRadius.circular(DesignTokens.radiusXL - 2),
                 child: Stack(
                   children: [
-                    // Image
                     Positioned.fill(
                       child: Image.file(_selectedImage!, fit: BoxFit.cover),
                     ),
-
-                    // Upload Progress Overlay
-                    if (_isUploading)
+                    if (isBusy || _simulateProgress)
                       Positioned.fill(
                         child: Container(
-                          color: AppColors.neutral900.withValues(alpha: 0.7),
+                          color: AppColors.neutral900.withValues(alpha: 0.72),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -543,18 +346,22 @@ class _ModernPhotoUploadScreenState extends State<ModernPhotoUploadScreen>
                                       width: 80,
                                       height: 80,
                                       child: CircularProgressIndicator(
-                                        value: _uploadProgress,
+                                        value:
+                                            (progressValue > 0 &&
+                                                progressValue < 1)
+                                            ? progressValue
+                                            : null,
                                         strokeWidth: 6,
                                         backgroundColor: AppColors.neutral200,
                                         valueColor:
-                                            AlwaysStoppedAnimation<Color>(
+                                            const AlwaysStoppedAnimation<Color>(
                                               AppColors.neutral900,
                                             ),
                                       ),
                                     ),
                                     const SizedBox(height: DesignTokens.spaceL),
                                     Text(
-                                      'Creating Your Model...',
+                                      statusLabel,
                                       style: AppTextStyles.headlineMedium
                                           .copyWith(
                                             color: AppColors.neutral900,
@@ -563,7 +370,7 @@ class _ModernPhotoUploadScreenState extends State<ModernPhotoUploadScreen>
                                     ),
                                     const SizedBox(height: DesignTokens.spaceS),
                                     Text(
-                                      '${(_uploadProgress * 100).toInt()}%',
+                                      '${(progressValue.clamp(0.0, 1.0) * 100).toInt()}%',
                                       style: AppTextStyles.bodyLarge.copyWith(
                                         color: AppColors.neutral600,
                                       ),
@@ -580,11 +387,8 @@ class _ModernPhotoUploadScreenState extends State<ModernPhotoUploadScreen>
               ),
             ),
           ),
-
           const SizedBox(height: DesignTokens.spaceXL),
-
-          // Action Buttons
-          if (!_isUploading) ...[
+          if (!isBusy) ...[
             Row(
               children: [
                 Expanded(
@@ -592,13 +396,15 @@ class _ModernPhotoUploadScreenState extends State<ModernPhotoUploadScreen>
                     onPressed: () {
                       setState(() {
                         _selectedImage = null;
+                        _lastErrorSurface = null;
                       });
+                      session.resetSession();
                     },
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
                         vertical: DesignTokens.spaceM,
                       ),
-                      side: BorderSide(color: AppColors.neutral300),
+                      side: const BorderSide(color: AppColors.neutral300),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(
                           DesignTokens.radiusM,
@@ -608,7 +414,7 @@ class _ModernPhotoUploadScreenState extends State<ModernPhotoUploadScreen>
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.photo_camera_back,
                           color: AppColors.neutral700,
                         ),
@@ -651,7 +457,7 @@ class _ModernPhotoUploadScreenState extends State<ModernPhotoUploadScreen>
                           ),
                         ),
                         const SizedBox(width: DesignTokens.spaceS),
-                        Icon(
+                        const Icon(
                           Icons.auto_awesome,
                           color: AppColors.neutralWhite,
                           size: 18,
@@ -663,6 +469,58 @@ class _ModernPhotoUploadScreenState extends State<ModernPhotoUploadScreen>
               ],
             ),
           ],
+        ],
+      ),
+    );
+  }
+}
+
+class _PhotoSourceTile extends StatelessWidget {
+  const _PhotoSourceTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(DesignTokens.spaceL),
+      decoration: BoxDecoration(
+        color: AppColors.neutralWhite,
+        borderRadius: BorderRadius.circular(DesignTokens.radiusM),
+        border: Border.all(color: AppColors.neutral300),
+        boxShadow: AppShadows.sm,
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 32, color: AppColors.neutral900),
+          const SizedBox(width: DesignTokens.spaceM),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: AppTextStyles.bodyLarge.copyWith(
+                    color: AppColors.neutral900,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: DesignTokens.spaceXS),
+                Text(
+                  subtitle,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.neutral600,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );

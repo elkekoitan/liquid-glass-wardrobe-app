@@ -44,59 +44,83 @@ class NavigationProvider extends ChangeNotifier {
     return AppRouter.generateRoute(resolvedSettings);
   }
 
-  RouteSettings resolveRoute(RouteSettings settings, {bool fromDeepLink = false}) {
+  RouteSettings resolveRoute(
+    RouteSettings settings, {
+    bool fromDeepLink = false,
+  }) {
     final targetName = settings.name ?? AppRouter.splash;
 
     if (_requiresAuthentication(targetName) && !_isAuthenticated) {
-      _analytics.logEvent('navigation_guard_redirect', parameters: {
-        'requested_route': targetName,
-        'redirect_target': AppRouter.login,
-        'reason': 'auth',
-        'from_deeplink': fromDeepLink,
-      });
-      _analytics.logEvent('navigation_resolved', parameters: {
-        'requested_route': targetName,
-        'resolved_route': AppRouter.login,
-        'from_deeplink': fromDeepLink,
-      });
+      _analytics.logEvent(
+        'navigation_guard_redirect',
+        parameters: {
+          'requested_route': targetName,
+          'redirect_target': AppRouter.login,
+          'reason': 'auth',
+          'from_deeplink': fromDeepLink,
+        },
+      );
+      _analytics.logEvent(
+        'navigation_resolved',
+        parameters: {
+          'requested_route': targetName,
+          'resolved_route': AppRouter.login,
+          'from_deeplink': fromDeepLink,
+        },
+      );
       return const RouteSettings(name: AppRouter.login);
     }
 
     if (_requiresProfileCompletion(targetName) && !_hasCompletedProfile) {
-      _analytics.logEvent('navigation_guard_redirect', parameters: {
-        'requested_route': targetName,
-        'redirect_target': AppRouter.profileSetup,
-        'reason': 'profile',
-        'from_deeplink': fromDeepLink,
-      });
-      _analytics.logEvent('navigation_resolved', parameters: {
-        'requested_route': targetName,
-        'resolved_route': AppRouter.profileSetup,
-        'from_deeplink': fromDeepLink,
-      });
+      _analytics.logEvent(
+        'navigation_guard_redirect',
+        parameters: {
+          'requested_route': targetName,
+          'redirect_target': AppRouter.profileSetup,
+          'reason': 'profile',
+          'from_deeplink': fromDeepLink,
+        },
+      );
+      _analytics.logEvent(
+        'navigation_resolved',
+        parameters: {
+          'requested_route': targetName,
+          'resolved_route': AppRouter.profileSetup,
+          'from_deeplink': fromDeepLink,
+        },
+      );
       return const RouteSettings(name: AppRouter.profileSetup);
     }
 
     if (_requiresPersonalization(targetName) && !_personalizationReady) {
-      _analytics.logEvent('navigation_guard_redirect', parameters: {
-        'requested_route': targetName,
-        'redirect_target': AppRouter.personalization,
-        'reason': 'personalization',
-        'from_deeplink': fromDeepLink,
-      });
-      _analytics.logEvent('navigation_resolved', parameters: {
-        'requested_route': targetName,
-        'resolved_route': AppRouter.personalization,
-        'from_deeplink': fromDeepLink,
-      });
+      _analytics.logEvent(
+        'navigation_guard_redirect',
+        parameters: {
+          'requested_route': targetName,
+          'redirect_target': AppRouter.personalization,
+          'reason': 'personalization',
+          'from_deeplink': fromDeepLink,
+        },
+      );
+      _analytics.logEvent(
+        'navigation_resolved',
+        parameters: {
+          'requested_route': targetName,
+          'resolved_route': AppRouter.personalization,
+          'from_deeplink': fromDeepLink,
+        },
+      );
       return const RouteSettings(name: AppRouter.personalization);
     }
 
-    _analytics.logEvent('navigation_resolved', parameters: {
-      'requested_route': targetName,
-      'resolved_route': targetName,
-      'from_deeplink': fromDeepLink,
-    });
+    _analytics.logEvent(
+      'navigation_resolved',
+      parameters: {
+        'requested_route': targetName,
+        'resolved_route': targetName,
+        'from_deeplink': fromDeepLink,
+      },
+    );
     return settings;
   }
 
@@ -106,10 +130,8 @@ class NavigationProvider extends ChangeNotifier {
       requestedRoute: route,
       arguments: arguments,
       fromDeepLink: false,
-      executor: (navigator, resolved) => navigator.pushNamed(
-        resolved.name!,
-        arguments: resolved.arguments,
-      ),
+      executor: (navigator, resolved) =>
+          navigator.pushNamed(resolved.name!, arguments: resolved.arguments),
     );
   }
 
@@ -132,21 +154,27 @@ class NavigationProvider extends ChangeNotifier {
     final navigator = navigatorKey.currentState;
     if (navigator == null) return;
     navigator.popUntil((route) => route.isFirst);
-    _analytics.logEvent('navigation_pop_to_root', parameters: {
-      'previous_route': _currentRoute,
-      'can_pop_after': navigator.canPop(),
-    });
+    _analytics.logEvent(
+      'navigation_pop_to_root',
+      parameters: {
+        'previous_route': _currentRoute,
+        'can_pop_after': navigator.canPop(),
+      },
+    );
   }
 
   void pop<T extends Object?>([T? result]) {
     final navigator = navigatorKey.currentState;
     if (navigator == null) return;
     navigator.pop<T>(result);
-    _analytics.logEvent('navigation_pop', parameters: {
-      'previous_route': _currentRoute,
-      'result_provided': result != null,
-      'can_pop_after': navigator.canPop(),
-    });
+    _analytics.logEvent(
+      'navigation_pop',
+      parameters: {
+        'previous_route': _currentRoute,
+        'result_provided': result != null,
+        'can_pop_after': navigator.canPop(),
+      },
+    );
   }
 
   Future<bool> maybePop<T extends Object?>([T? result]) async {
@@ -154,10 +182,13 @@ class NavigationProvider extends ChangeNotifier {
     if (navigator == null) return false;
     final didPop = await navigator.maybePop<T>(result);
     if (didPop) {
-      _analytics.logEvent('navigation_maybe_pop', parameters: {
-        'previous_route': _currentRoute,
-        'result_provided': result != null,
-      });
+      _analytics.logEvent(
+        'navigation_maybe_pop',
+        parameters: {
+          'previous_route': _currentRoute,
+          'result_provided': result != null,
+        },
+      );
     }
     return didPop;
   }
@@ -172,10 +203,8 @@ class NavigationProvider extends ChangeNotifier {
       requestedRoute: route,
       arguments: arguments,
       fromDeepLink: true,
-      executor: (navigator, resolved) => navigator.pushNamed(
-        resolved.name!,
-        arguments: resolved.arguments,
-      ),
+      executor: (navigator, resolved) =>
+          navigator.pushNamed(resolved.name!, arguments: resolved.arguments),
     );
   }
 
@@ -184,7 +213,11 @@ class NavigationProvider extends ChangeNotifier {
     required String requestedRoute,
     Object? arguments,
     required bool fromDeepLink,
-    required Future<void> Function(NavigatorState navigator, RouteSettings resolved) executor,
+    required Future<void> Function(
+      NavigatorState navigator,
+      RouteSettings resolved,
+    )
+    executor,
   }) async {
     final navigator = navigatorKey.currentState;
     if (navigator == null) return;
@@ -197,13 +230,16 @@ class NavigationProvider extends ChangeNotifier {
     await executor(navigator, resolved);
     _currentRoute = resolved.name ?? _currentRoute;
 
-    _analytics.logEvent('navigation_$action', parameters: {
-      'requested_route': requestedRoute,
-      'resolved_route': resolved.name,
-      'redirected': resolved.name != requestedRoute,
-      'from_deeplink': fromDeepLink,
-      'arguments_present': resolved.arguments != null,
-    });
+    _analytics.logEvent(
+      'navigation_$action',
+      parameters: {
+        'requested_route': requestedRoute,
+        'resolved_route': resolved.name,
+        'redirected': resolved.name != requestedRoute,
+        'from_deeplink': fromDeepLink,
+        'arguments_present': resolved.arguments != null,
+      },
+    );
   }
 
   bool _requiresAuthentication(String name) {
@@ -243,5 +279,6 @@ class NavigationProvider extends ChangeNotifier {
     AppRouter.profile,
     AppRouter.settings,
     AppRouter.capsules,
+    AppRouter.trendPulse,
   };
 }

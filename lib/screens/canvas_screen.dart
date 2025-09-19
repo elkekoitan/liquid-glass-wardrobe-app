@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 
 import '../providers/fit_check_provider.dart';
 import '../providers/personalization_provider.dart';
+import '../providers/try_on_session_provider.dart';
+import '../models/models.dart';
 import '../services/gemini_service.dart';
 import '../core/theme/app_colors.dart';
 import '../core/theme/app_typography.dart';
@@ -11,7 +13,6 @@ import '../widgets/glass_container.dart';
 import '../widgets/liquid_button.dart';
 import '../providers/navigation_provider.dart';
 
-/// Canvas Screen - Main try-on viewer with pose controls
 class CanvasScreen extends StatelessWidget {
   const CanvasScreen({super.key});
 
@@ -21,9 +22,13 @@ class CanvasScreen extends StatelessWidget {
       (prefs) => prefs.highContrast,
     );
 
-    return Consumer<FitCheckProvider>(
-      builder: (context, provider, child) {
+    return Consumer2<FitCheckProvider, TryOnSessionProvider>(
+      builder: (context, provider, session, child) {
         final displayUrl = provider.displayImageUrl;
+        final isBusy = session.isBusy;
+        final hasError = session.hasError;
+        final statusLabel = session.statusLabel;
+        final progress = session.progress;
         return Padding(
           padding: const EdgeInsets.all(AppSpacing.lg),
           child: Stack(
@@ -34,10 +39,10 @@ class CanvasScreen extends StatelessWidget {
                 child: GlassContainer.light(
                   child: LiquidButton.secondary(
                     text: 'Start Over',
-                    onPressed: provider.isLoading
+                    onPressed: isBusy
                         ? null
                         : () {
-                            provider.startOver();
+                            session.resetSession();
                             context.read<NavigationProvider>().maybePop();
                           },
                   ),
@@ -49,13 +54,18 @@ class CanvasScreen extends StatelessWidget {
                     aspectRatio: 2 / 3,
                     child: _CanvasViewport(
                       provider: provider,
+                      session: session,
                       displayUrl: displayUrl,
                       highContrast: highContrast,
+                      statusLabel: statusLabel,
+                      progress: progress,
+                      showBusyOverlay: isBusy && !hasError,
+                      errorSurface: session.errorSurface,
                     ),
                   ),
                 ),
               ),
-              if (displayUrl != null && !provider.isLoading)
+              if (displayUrl != null && !isBusy)
                 Positioned(
                   bottom: AppSpacing.xl,
                   left: 0,
@@ -73,13 +83,23 @@ class CanvasScreen extends StatelessWidget {
 class _CanvasViewport extends StatelessWidget {
   const _CanvasViewport({
     required this.provider,
+    required this.session,
     required this.displayUrl,
     required this.highContrast,
+    required this.statusLabel,
+    required this.progress,
+    required this.showBusyOverlay,
+    required this.errorSurface,
   });
 
   final FitCheckProvider provider;
+  final TryOnSessionProvider session;
   final String? displayUrl;
   final bool highContrast;
+  final String statusLabel;
+  final double progress;
+  final bool showBusyOverlay;
+  final GeminiErrorSurface? errorSurface;
 
   @override
   Widget build(BuildContext context) {
@@ -94,22 +114,78 @@ class _CanvasViewport extends StatelessWidget {
                 : const _PlaceholderLoading(message: 'Loading Model...'),
           ),
         ),
-        if (provider.isLoading)
+        if (showBusyOverlay || errorSurface != null)
           Positioned.fill(
             child: GlassContainer.strong(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const SizedBox(height: AppSpacing.md),
-                  const CircularProgressIndicator(),
-                  if (provider.loadingMessage.isNotEmpty) ...[
+                  if (errorSurface != null) ...[
+                    Icon(
+                      Icons.error_outline,
+                      size: 48,
+                      color: highContrast ? Colors.white : AppColors.error,
+                    ),
                     const SizedBox(height: AppSpacing.md),
                     Padding(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.md,
+                        horizontal: AppSpacing.lg,
                       ),
                       child: Text(
-                        provider.loadingMessage,
+                        errorSurface!.title,
+                        style: AppTypography.bodyLarge.copyWith(
+                          color: highContrast
+                              ? Colors.white
+                              : AppColors.textPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.lg,
+                      ),
+                      child: Text(
+                        errorSurface!.message,
+                        style: AppTypography.bodyMedium.copyWith(
+                          color: highContrast
+                              ? Colors.white70
+                              : AppColors.textSecondary,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    LiquidButton.primary(
+                      text: errorSurface!.actionLabel,
+                      onPressed: () {
+                        session.clearError();
+                      },
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    LiquidButton.secondary(
+                      text: 'Start Over',
+                      onPressed: () {
+                        session.resetSession();
+                      },
+                    ),
+                  ] else ...[
+                    SizedBox(
+                      height: 48,
+                      width: 48,
+                      child: progress > 0 && progress < 1
+                          ? CircularProgressIndicator(value: progress)
+                          : const CircularProgressIndicator(),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.lg,
+                      ),
+                      child: Text(
+                        statusLabel,
                         style: AppTypography.bodyMedium.copyWith(
                           color: highContrast
                               ? Colors.white
@@ -185,15 +261,20 @@ class _PoseControls extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<FitCheckProvider>();
+    final session = context.watch<TryOnSessionProvider>();
     final poseList = PoseInstructions.instructions;
     final currentIndex = provider.currentPoseIndex;
 
-    void previous() {
-      if (provider.isLoading || provider.availablePoseKeys.length <= 1) return;
+    Future<void> previous() async {
+      if (session.isBusy ||
+          session.hasError ||
+          provider.availablePoseKeys.length <= 1) {
+        return;
+      }
       final currentPose = poseList[currentIndex];
       final idxInAvailable = provider.availablePoseKeys.indexOf(currentPose);
       if (idxInAvailable == -1) {
-        provider.changePose(
+        await session.requestPoseChange(
           (currentIndex - 1 + poseList.length) % poseList.length,
         );
         return;
@@ -203,24 +284,30 @@ class _PoseControls extends StatelessWidget {
           provider.availablePoseKeys.length;
       final prevPose = provider.availablePoseKeys[prevIdx];
       final newGlobal = poseList.indexOf(prevPose);
-      if (newGlobal != -1) provider.changePose(newGlobal);
+      if (newGlobal != -1) {
+        await session.requestPoseChange(newGlobal);
+      }
     }
 
-    void next() {
-      if (provider.isLoading) return;
+    Future<void> next() async {
+      if (session.isBusy || session.hasError) {
+        return;
+      }
       final currentPose = poseList[currentIndex];
       final idxInAvailable = provider.availablePoseKeys.indexOf(currentPose);
       if (idxInAvailable == -1 || provider.availablePoseKeys.isEmpty) {
-        provider.changePose((currentIndex + 1) % poseList.length);
+        await session.requestPoseChange((currentIndex + 1) % poseList.length);
         return;
       }
       final nextIdx = idxInAvailable + 1;
       if (nextIdx < provider.availablePoseKeys.length) {
         final nextPose = provider.availablePoseKeys[nextIdx];
         final newGlobal = poseList.indexOf(nextPose);
-        if (newGlobal != -1) provider.changePose(newGlobal);
+        if (newGlobal != -1) {
+          await session.requestPoseChange(newGlobal);
+        }
       } else {
-        provider.changePose((currentIndex + 1) % poseList.length);
+        await session.requestPoseChange((currentIndex + 1) % poseList.length);
       }
     }
 
@@ -231,7 +318,9 @@ class _PoseControls extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
-            onPressed: provider.isLoading ? null : previous,
+            onPressed: (session.isBusy || session.hasError)
+                ? null
+                : () => previous(),
             icon: const Icon(Icons.chevron_left),
           ),
           const SizedBox(width: AppSpacing.sm),
@@ -250,7 +339,9 @@ class _PoseControls extends StatelessWidget {
           ),
           const SizedBox(width: AppSpacing.sm),
           IconButton(
-            onPressed: provider.isLoading ? null : next,
+            onPressed: (session.isBusy || session.hasError)
+                ? null
+                : () => next(),
             icon: const Icon(Icons.chevron_right),
           ),
         ],

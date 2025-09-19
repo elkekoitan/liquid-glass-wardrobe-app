@@ -8,8 +8,11 @@ import 'providers/theme_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/personalization_provider.dart';
 import 'providers/navigation_provider.dart';
+import 'providers/trend_pulse_provider.dart';
+import 'providers/try_on_session_provider.dart';
 import 'services/auth_service.dart';
 import 'services/analytics_service.dart';
+import 'services/gemini_service.dart';
 import 'core/theme/app_theme.dart';
 
 import 'core/services/error_service.dart';
@@ -67,6 +70,28 @@ class FitCheckApp extends StatelessWidget {
 
         // Main App State Provider
         ChangeNotifierProvider(create: (_) => FitCheckProvider()),
+
+        // Trend intelligence feed
+        ChangeNotifierProvider(create: (_) => TrendPulseProvider()..load()),
+
+        // Try-on session coordinator
+        ChangeNotifierProxyProvider2<
+          FitCheckProvider,
+          PersonalizationProvider,
+          TryOnSessionProvider
+        >(
+          create: (_) => TryOnSessionProvider(),
+          update: (_, fitCheck, personalization, session) {
+            final coordinator = session ?? TryOnSessionProvider();
+            coordinator.updateDependencies(
+              fitCheck: fitCheck,
+              personalization: personalization,
+              apiKey: dotenv.env['GEMINI_API_KEY'],
+              config: GeminiServiceConfig.fromEnv(dotenv.env),
+            );
+            return coordinator;
+          },
+        ),
 
         // Navigation Provider with guard awareness
         ChangeNotifierProxyProvider2<

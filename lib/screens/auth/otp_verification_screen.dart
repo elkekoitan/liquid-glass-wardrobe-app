@@ -334,7 +334,8 @@ class _OtpVerificationViewState extends State<_OtpVerificationView> {
                   trailing: method.id == provider.activeMethod.id
                       ? const Icon(Icons.check_circle, color: Colors.white)
                       : null,
-                  onTap: () => sheetContext.read<NavigationProvider>().pop(method.id),
+                  onTap: () =>
+                      sheetContext.read<NavigationProvider>().pop(method.id),
                 ),
               ),
             ],

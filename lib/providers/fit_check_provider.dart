@@ -1,38 +1,42 @@
 import 'dart:io';
+
 import 'package:flutter/foundation.dart';
+
 import '../models/models.dart';
 import '../services/gemini_service.dart';
 
-/// Main state provider for FitCheck app
-/// Manages outfit history, wardrobe items, loading states, and AI operations
-
+/// Main state provider for FitCheck app.
+///
+/// Manages outfit history, wardrobe items, and coordinates Gemini operations.
 class FitCheckProvider extends ChangeNotifier {
-  // Core state
   String? _modelImageUrl;
-  List<OutfitLayer> _outfitHistory = [];
+  List<OutfitLayer> _outfitHistory = <OutfitLayer>[];
   int _currentOutfitIndex = 0;
-  final List<WardrobeItem> _wardrobe = [];
+  final List<WardrobeItem> _wardrobe = <WardrobeItem>[];
 
-  // UI state
   bool _isLoading = false;
   String _loadingMessage = '';
   String? _error;
   int _currentPoseIndex = 0;
 
-  // Services
   GeminiService? _geminiService;
 
-  // Getters
+  void attachGeminiService(GeminiService service) {
+    _geminiService = service;
+  }
+
+  bool get hasGeminiService => _geminiService != null;
+
   String? get modelImageUrl => _modelImageUrl;
-  List<OutfitLayer> get outfitHistory => List.unmodifiable(_outfitHistory);
+  List<OutfitLayer> get outfitHistory =>
+      List<OutfitLayer>.unmodifiable(_outfitHistory);
   int get currentOutfitIndex => _currentOutfitIndex;
-  List<WardrobeItem> get wardrobe => List.unmodifiable(_wardrobe);
+  List<WardrobeItem> get wardrobe => List<WardrobeItem>.unmodifiable(_wardrobe);
   bool get isLoading => _isLoading;
   String get loadingMessage => _loadingMessage;
   String? get error => _error;
   int get currentPoseIndex => _currentPoseIndex;
 
-  // Computed getters
   List<OutfitLayer> get activeOutfitLayers =>
       _outfitHistory.take(_currentOutfitIndex + 1).toList();
 
@@ -44,17 +48,14 @@ class FitCheckProvider extends ChangeNotifier {
 
   String? get displayImageUrl {
     if (_outfitHistory.isEmpty) return _modelImageUrl;
-
     final currentLayer = _outfitHistory[_currentOutfitIndex];
     final poseInstruction = PoseInstructions.instructions[_currentPoseIndex];
-
     return currentLayer.poseImages[poseInstruction] ??
         currentLayer.poseImages.values.first;
   }
 
   List<String> get availablePoseKeys {
-    if (_outfitHistory.isEmpty) return [];
-
+    if (_outfitHistory.isEmpty) return <String>[];
     final currentLayer = _outfitHistory[_currentOutfitIndex];
     return currentLayer.poseImages.keys.toList();
   }
@@ -62,123 +63,170 @@ class FitCheckProvider extends ChangeNotifier {
   bool get canUndo => _currentOutfitIndex > 0;
   bool get canRedo => _currentOutfitIndex < _outfitHistory.length - 1;
 
-  /// Initialize Gemini service with API key
-  void initializeGeminiService(String apiKey) {
-    _geminiService = GeminiService(apiKey: apiKey);
+  GeminiService _requireService() {
+    final service = _geminiService;
+    if (service == null) {
+      throw StateError('Gemini service is not attached.');
+    }
+    return service;
   }
 
-  /// Set loading state
   void _setLoading(bool loading, [String message = '']) {
     _isLoading = loading;
     _loadingMessage = message;
     notifyListeners();
   }
 
-  /// Set error state
-  void _setError(String? error) {
-    _error = error;
+  void _setError(String? message) {
+    _error = message;
     notifyListeners();
   }
 
-  /// Clear error
   void clearError() {
     _setError(null);
   }
 
-  /// Process user image to create model photo
-  Future<void> processModelImage(File userImage) async {
-    if (_geminiService == null) {
-      throw Exception('Gemini service not initialized');
-    }
+  Future<void> processModelImage(
+    File userImage, {
+    Map<String, String> contextHints = const <String, String>{},
+  }) async {
+    final service = _requireService();
 
     try {
       _setLoading(true, 'Processing your photo...');
       _setError(null);
 
-      final modelImageUrl = await _geminiService!.generateModelImage(userImage);
+      final result = await service.generateModelImage(
+        GeminiModelRequest(userImage: userImage, contextHints: contextHints),
+      );
 
-      _modelImageUrl = modelImageUrl;
-      _outfitHistory = [
+      _modelImageUrl = result.imageDataUrl;
+      _outfitHistory = <OutfitLayer>[
         OutfitLayer(
           garment: null,
-          poseImages: {PoseInstructions.instructions[0]: modelImageUrl},
+          poseImages: <String, String>{
+            PoseInstructions.instructions[0]: result.imageDataUrl,
+          },
         ),
       ];
       _currentOutfitIndex = 0;
       _currentPoseIndex = 0;
 
       notifyListeners();
-    } catch (e) {
-      _setError('Failed to process model image: ${e.toString()}');
+    } on GeminiFailure catch (failure) {
+      _setError(failure.surface.message);
+      rethrow;
+    } catch (error) {
+      final failure = GeminiFailure(
+        code: 'model_image_error',
+        message: 'Failed to process model image.',
+        surface: GeminiErrorSurface(
+          code: 'model_image_error',
+          title: 'Try-On Failed',
+          message: 'Failed to process model image.',
+          explanation: error.toString(),
+          actionLabel: 'Try Again',
+          severity: GeminiErrorSeverity.critical,
+        ),
+        cause: error,
+      );
+      _setError(failure.surface.message);
+      throw failure;
     } finally {
       _setLoading(false);
     }
   }
 
-  /// Apply garment to current model
-  Future<void> applyGarment(File garmentFile, WardrobeItem garmentInfo) async {
-    if (_geminiService == null || displayImageUrl == null) {
-      throw Exception('Service not initialized or no model image available');
+  Future<void> applyGarment(
+    File garmentFile,
+    WardrobeItem garmentInfo, {
+    Map<String, String> contextHints = const <String, String>{},
+  }) async {
+    final service = _requireService();
+    final currentDisplay = displayImageUrl;
+
+    if (currentDisplay == null) {
+      throw StateError('No model image available to apply garments.');
+    }
+
+    if (_currentOutfitIndex + 1 < _outfitHistory.length) {
+      final nextLayer = _outfitHistory[_currentOutfitIndex + 1];
+      if (nextLayer.garment?.id == garmentInfo.id) {
+        _currentOutfitIndex++;
+        _currentPoseIndex = 0;
+        notifyListeners();
+        return;
+      }
     }
 
     try {
-      // Check if this garment is already the next layer
-      if (_currentOutfitIndex + 1 < _outfitHistory.length) {
-        final nextLayer = _outfitHistory[_currentOutfitIndex + 1];
-        if (nextLayer.garment?.id == garmentInfo.id) {
-          _currentOutfitIndex++;
-          _currentPoseIndex = 0;
-          notifyListeners();
-          return;
-        }
-      }
-
       _setLoading(true, 'Adding ${garmentInfo.name}...');
       _setError(null);
 
-      final newImageUrl = await _geminiService!.generateVirtualTryOnImage(
-        displayImageUrl!,
-        garmentFile,
+      final result = await service.blendGarment(
+        GeminiBlendRequest(
+          modelImageDataUrl: currentDisplay,
+          garmentImage: garmentFile,
+          garmentName: garmentInfo.name,
+          garmentId: garmentInfo.id,
+          contextHints: contextHints,
+        ),
       );
 
-      final currentPoseInstruction =
-          PoseInstructions.instructions[_currentPoseIndex];
+      final poseKey = PoseInstructions.instructions[_currentPoseIndex];
       final newLayer = OutfitLayer(
         garment: garmentInfo,
-        poseImages: {currentPoseInstruction: newImageUrl},
+        poseImages: <String, String>{poseKey: result.imageDataUrl},
       );
 
-      // Remove any layers after current index and add new layer
       _outfitHistory = _outfitHistory.take(_currentOutfitIndex + 1).toList();
       _outfitHistory.add(newLayer);
-      _currentOutfitIndex++;
+      _currentOutfitIndex = _outfitHistory.length - 1;
+      _currentPoseIndex = 0;
 
-      // Add to wardrobe if not already there
       if (!_wardrobe.any((item) => item.id == garmentInfo.id)) {
         _wardrobe.add(garmentInfo);
       }
 
       notifyListeners();
-    } catch (e) {
-      _setError('Failed to apply garment: ${e.toString()}');
+    } on GeminiFailure catch (failure) {
+      _setError(failure.surface.message);
+      rethrow;
+    } catch (error) {
+      final failure = GeminiFailure(
+        code: 'garment_blend_error',
+        message: 'Failed to apply garment.',
+        surface: GeminiErrorSurface(
+          code: 'garment_blend_error',
+          title: 'Try-On Failed',
+          message: 'Failed to apply garment.',
+          explanation: error.toString(),
+          actionLabel: 'Try Again',
+          severity: GeminiErrorSeverity.critical,
+        ),
+        cause: error,
+      );
+      _setError(failure.surface.message);
+      throw failure;
     } finally {
       _setLoading(false);
     }
   }
 
-  /// Change pose of current outfit
-  Future<void> changePose(int newPoseIndex) async {
-    if (_geminiService == null ||
-        _outfitHistory.isEmpty ||
+  Future<void> changePose(
+    int newPoseIndex, {
+    Map<String, String> contextHints = const <String, String>{},
+  }) async {
+    if (_outfitHistory.isEmpty ||
         newPoseIndex == _currentPoseIndex ||
         _isLoading) {
       return;
     }
 
+    final service = _requireService();
     final poseInstruction = PoseInstructions.instructions[newPoseIndex];
     final currentLayer = _outfitHistory[_currentOutfitIndex];
 
-    // If pose already exists, just switch to it
     if (currentLayer.poseImages.containsKey(poseInstruction)) {
       _currentPoseIndex = newPoseIndex;
       notifyListeners();
@@ -190,68 +238,113 @@ class FitCheckProvider extends ChangeNotifier {
       _setError(null);
 
       final baseImageUrl = currentLayer.poseImages.values.first;
-      final newImageUrl = await _geminiService!.generatePoseVariation(
-        baseImageUrl,
-        poseInstruction,
+      final result = await service.generatePoseVariation(
+        GeminiPoseRequest(
+          baseImageDataUrl: baseImageUrl,
+          poseInstruction: poseInstruction,
+          contextHints: contextHints,
+        ),
       );
 
-      // Update the layer with the new pose image
       final updatedLayer = currentLayer.addPoseImage(
         poseInstruction,
-        newImageUrl,
+        result.imageDataUrl,
       );
       _outfitHistory[_currentOutfitIndex] = updatedLayer;
       _currentPoseIndex = newPoseIndex;
 
       notifyListeners();
-    } catch (e) {
-      _setError('Failed to change pose: ${e.toString()}');
+    } on GeminiFailure catch (failure) {
+      _setError(failure.surface.message);
+      rethrow;
+    } catch (error) {
+      final failure = GeminiFailure(
+        code: 'pose_generation_error',
+        message: 'Failed to change pose.',
+        surface: GeminiErrorSurface(
+          code: 'pose_generation_error',
+          title: 'Try-On Failed',
+          message: 'Failed to change pose.',
+          explanation: error.toString(),
+          actionLabel: 'Try Again',
+          severity: GeminiErrorSeverity.critical,
+        ),
+        cause: error,
+      );
+      _setError(failure.surface.message);
+      throw failure;
     } finally {
       _setLoading(false);
     }
   }
 
-  /// Change color of garment in specific layer
-  Future<void> changeGarmentColor(int layerIndex, String colorPrompt) async {
-    if (_geminiService == null ||
-        layerIndex >= _outfitHistory.length ||
-        _isLoading) {
+  Future<void> changeGarmentColor(
+    int layerIndex,
+    String colorPrompt, {
+    Map<String, String> contextHints = const <String, String>{},
+  }) async {
+    if (layerIndex >= _outfitHistory.length || _isLoading) {
       return;
     }
 
+    final service = _requireService();
     final layer = _outfitHistory[layerIndex];
+    final baseImageUrl = layer.firstImageUrl;
+
+    if (baseImageUrl == null) {
+      return;
+    }
+
     final garmentName = layer.garment?.name ?? 'garment';
 
     try {
-      _setLoading(true, 'Changing color to $colorPrompt...');
+      _setLoading(true, 'Changing colour to $colorPrompt...');
       _setError(null);
 
-      final baseImageUrl = layer.firstImageUrl!;
-      final newImageUrl = await _geminiService!.generateColorVariation(
-        baseImageUrl,
-        garmentName,
-        colorPrompt,
+      final result = await service.generateColorVariation(
+        GeminiColorRequest(
+          baseImageDataUrl: baseImageUrl,
+          garmentName: garmentName,
+          colorPrompt: colorPrompt,
+          contextHints: contextHints,
+        ),
       );
 
-      // Create new layer with color variation
       final newLayer = layer.copyWith(
-        poseImages: {PoseInstructions.instructions[0]: newImageUrl},
+        poseImages: <String, String>{
+          PoseInstructions.instructions[0]: result.imageDataUrl,
+        },
       );
 
-      // Replace the layer and move to it
       _outfitHistory[layerIndex] = newLayer;
       _currentOutfitIndex = layerIndex;
       _currentPoseIndex = 0;
 
       notifyListeners();
-    } catch (e) {
-      _setError('Failed to change color: ${e.toString()}');
+    } on GeminiFailure catch (failure) {
+      _setError(failure.surface.message);
+      rethrow;
+    } catch (error) {
+      final failure = GeminiFailure(
+        code: 'color_variation_error',
+        message: 'Failed to change colour.',
+        surface: GeminiErrorSurface(
+          code: 'color_variation_error',
+          title: 'Try-On Failed',
+          message: 'Failed to change colour.',
+          explanation: error.toString(),
+          actionLabel: 'Try Again',
+          severity: GeminiErrorSeverity.critical,
+        ),
+        cause: error,
+      );
+      _setError(failure.surface.message);
+      throw failure;
     } finally {
       _setLoading(false);
     }
   }
 
-  /// Undo to previous outfit layer
   void undoLastGarment() {
     if (_currentOutfitIndex > 0) {
       _currentOutfitIndex--;
@@ -260,7 +353,6 @@ class FitCheckProvider extends ChangeNotifier {
     }
   }
 
-  /// Redo to next outfit layer
   void redoLastGarment() {
     if (_currentOutfitIndex < _outfitHistory.length - 1) {
       _currentOutfitIndex++;
@@ -269,7 +361,6 @@ class FitCheckProvider extends ChangeNotifier {
     }
   }
 
-  /// Jump to specific outfit layer
   void jumpToLayer(int layerIndex) {
     if (layerIndex >= 0 && layerIndex < _outfitHistory.length) {
       _currentOutfitIndex = layerIndex;
@@ -278,7 +369,6 @@ class FitCheckProvider extends ChangeNotifier {
     }
   }
 
-  /// Add wardrobe item
   void addWardrobeItem(WardrobeItem item) {
     if (!_wardrobe.any((existing) => existing.id == item.id)) {
       _wardrobe.add(item);
@@ -286,19 +376,16 @@ class FitCheckProvider extends ChangeNotifier {
     }
   }
 
-  /// Remove wardrobe item
   void removeWardrobeItem(String itemId) {
     _wardrobe.removeWhere((item) => item.id == itemId);
     notifyListeners();
   }
 
-  /// Clear all wardrobe items
   void clearWardrobe() {
     _wardrobe.clear();
     notifyListeners();
   }
 
-  /// Start over - reset all state
   void startOver() {
     _modelImageUrl = null;
     _outfitHistory.clear();
@@ -311,6 +398,4 @@ class FitCheckProvider extends ChangeNotifier {
 
     notifyListeners();
   }
-
-  /// Get friendly error message
 }

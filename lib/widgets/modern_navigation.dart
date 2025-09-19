@@ -477,12 +477,7 @@ class ModernNavigation {
       return;
     }
     final navigator = navigation.navigatorKey.currentState;
-    navigator?.push(
-      ModernPageRoute(
-        page: page,
-        routeName: targetRoute,
-      ),
-    );
+    navigator?.push(ModernPageRoute(page: page, routeName: targetRoute));
   }
 
   static void pushReplacementPage(
@@ -499,10 +494,7 @@ class ModernNavigation {
     }
     final navigator = navigation.navigatorKey.currentState;
     navigator?.pushReplacement(
-      ModernPageRoute(
-        page: page,
-        routeName: targetRoute,
-      ),
+      ModernPageRoute(page: page, routeName: targetRoute),
     );
   }
 

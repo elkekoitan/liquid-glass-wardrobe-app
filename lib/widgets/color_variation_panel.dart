@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../providers/fit_check_provider.dart';
+import '../providers/try_on_session_provider.dart';
 import '../services/gemini_service.dart';
 import '../core/theme/app_colors.dart';
 import '../core/theme/app_typography.dart';
@@ -61,15 +62,17 @@ class _ColorVariationPanelState extends State<ColorVariationPanel> {
     });
 
     try {
-      final provider = context.read<FitCheckProvider>();
-      await provider.changeGarmentColor(widget.layerIndex, colorPrompt);
+      final session = context.read<TryOnSessionProvider>();
+      final success = await session.requestColorChange(
+        widget.layerIndex,
+        colorPrompt,
+      );
 
-      // Close panel on success
-      if (provider.error == null) {
+      if (success && session.errorSurface == null) {
         widget.onClose?.call();
       }
-    } catch (e) {
-      // Error handling is done in the provider
+    } catch (_) {
+      // Session provider surfaces the error; UI reacts via Consumer.
     } finally {
       setState(() {
         _isApplyingColor = false;
@@ -79,6 +82,7 @@ class _ColorVariationPanelState extends State<ColorVariationPanel> {
 
   @override
   Widget build(BuildContext context) {
+    final session = context.watch<TryOnSessionProvider>();
     return Dialog(
       backgroundColor: Colors.transparent,
       child: GlassContainer.strong(
@@ -140,27 +144,18 @@ class _ColorVariationPanelState extends State<ColorVariationPanel> {
                   ),
                   child: Row(
                     children: [
-                      SizedBox(
+                      const SizedBox(
                         width: 20,
                         height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation(AppColors.primary),
-                        ),
+                        child: CircularProgressIndicator(strokeWidth: 2),
                       ),
                       const SizedBox(width: AppSpacing.sm),
                       Expanded(
-                        child: Consumer<FitCheckProvider>(
-                          builder: (context, provider, child) {
-                            return Text(
-                              provider.loadingMessage.isNotEmpty
-                                  ? provider.loadingMessage
-                                  : 'Applying color change...',
-                              style: AppTypography.bodyMedium.copyWith(
-                                color: AppColors.primary,
-                              ),
-                            );
-                          },
+                        child: Text(
+                          session.statusLabel,
+                          style: AppTypography.bodyMedium.copyWith(
+                            color: AppColors.primary,
+                          ),
                         ),
                       ),
                     ],
@@ -170,45 +165,38 @@ class _ColorVariationPanelState extends State<ColorVariationPanel> {
               ],
 
               // Error display
-              Consumer<FitCheckProvider>(
-                builder: (context, provider, child) {
-                  if (provider.error == null) return const SizedBox.shrink();
-                  return Column(
+              if (session.errorSurface != null) ...[
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.sm),
+                  decoration: BoxDecoration(
+                    color: AppColors.error.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: AppColors.error.withValues(alpha: 0.3),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(AppSpacing.sm),
-                        decoration: BoxDecoration(
-                          color: AppColors.error.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: AppColors.error.withValues(alpha: 0.3),
-                            width: 1,
+                      Icon(
+                        Icons.error_outline,
+                        color: AppColors.error,
+                        size: 16,
+                      ),
+                      const SizedBox(width: AppSpacing.xs),
+                      Expanded(
+                        child: Text(
+                          session.errorSurface!.message,
+                          style: AppTypography.bodySmall.copyWith(
+                            color: AppColors.error,
                           ),
                         ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.error_outline,
-                              color: AppColors.error,
-                              size: 16,
-                            ),
-                            const SizedBox(width: AppSpacing.xs),
-                            Expanded(
-                              child: Text(
-                                provider.error!,
-                                style: AppTypography.bodySmall.copyWith(
-                                  color: AppColors.error,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
                       ),
-                      const SizedBox(height: AppSpacing.md),
                     ],
-                  );
-                },
-              ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+              ],
 
               // Preset color options
               if (!_isApplyingColor) ...[
@@ -415,8 +403,8 @@ class PoseSelectionPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<FitCheckProvider>(
-      builder: (context, provider, child) {
+    return Consumer2<FitCheckProvider, TryOnSessionProvider>(
+      builder: (context, provider, session, child) {
         final poseInstructions = PoseInstructions.instructions;
         final currentPoseIndex = provider.currentPoseIndex;
         final availablePoses = provider.availablePoseKeys;
@@ -472,7 +460,7 @@ class PoseSelectionPanel extends StatelessWidget {
                         final pose = poseInstructions[index];
                         final isCurrentPose = index == currentPoseIndex;
                         final isAvailable = availablePoses.contains(pose);
-                        final isLoading = provider.isLoading;
+                        final isLoading = session.isBusy;
 
                         return _PoseOptionTile(
                               pose: pose,
@@ -483,8 +471,11 @@ class PoseSelectionPanel extends StatelessWidget {
                               onTap: (isLoading || isCurrentPose)
                                   ? null
                                   : () {
-                                      provider.changePose(index);
-                                      onClose?.call();
+                                      session.requestPoseChange(index).then((success) {
+                                        if (success && session.errorSurface == null) {
+                                          onClose?.call();
+                                        }
+                                      });
                                     },
                             )
                             .animate()

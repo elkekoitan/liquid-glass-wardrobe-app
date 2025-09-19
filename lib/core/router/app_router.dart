@@ -10,6 +10,7 @@ import '../../screens/main_app_screen.dart';
 import '../../screens/main/home_screen.dart';
 import '../../screens/capsules/capsule_gallery_screen.dart';
 import '../../screens/settings/personalization_settings_screen.dart';
+import '../../screens/trends/trend_pulse_screen.dart';
 
 class AppRouter {
   static const String splash = '/';
@@ -28,6 +29,7 @@ class AppRouter {
   static const String settings = '/settings';
   static const String capsules = '/capsules';
   static const String personalization = '/settings/personalization';
+  static const String trendPulse = '/trends/pulse';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -113,6 +115,13 @@ class AppRouter {
           const ModernPhotoUploadScreen(),
           settings: settings,
           transitionType: _TransitionType.slideFromBottom,
+        );
+
+      case trendPulse:
+        return _createRoute(
+          const TrendPulseScreen(),
+          settings: settings,
+          transitionType: _TransitionType.slideFromRight,
         );
 
       default:
